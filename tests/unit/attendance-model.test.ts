@@ -194,9 +194,9 @@ describe("attendance copy", () => {
         accuracyM: 80,
         thresholdM: 50,
       }).title,
-    ).toMatch(/A more accurate location is needed – try again outdoors/);
+    ).toMatch(/We need a more accurate location\. Try again near a window or outside\./);
     expect(errorMessage("CLOCK_IN", { kind: "OFFLINE", unconfirmed: false }).title).toBe(
-      "No connection – try again",
+      "You're offline. Check your connection and try again.",
     );
     expect(errorMessage("CLOCK_IN", { kind: "NOT_CONFIGURED" }).title).toBe("Attendance isn't set up yet");
     expect(successMessage("CLOCK_IN", clockedIn, 12)).toMatchObject({

@@ -3,7 +3,8 @@ export type AuthClientError = { code?: string; status?: number; message?: string
 
 /** Errors from the Admin email + password form. */
 export function authErrorMessage(error: AuthClientError): string {
-  if (typeof navigator !== "undefined" && !navigator.onLine) return "No connection – try again.";
+  if (typeof navigator !== "undefined" && !navigator.onLine)
+    return "You're offline. Check your connection and try again.";
   if (!error) return "Something went wrong. Please try again.";
   if (error.status === 429) return "Too many attempts. Wait a minute, then try again.";
   switch (error.code) {
@@ -15,7 +16,7 @@ export function authErrorMessage(error: AuthClientError): string {
       return "Enter a valid email address.";
     default:
       return error.status === 0 || error.status === undefined
-        ? "No connection – try again."
+        ? "You're offline. Check your connection and try again."
         : "Something went wrong. Please try again.";
   }
 }
@@ -29,7 +30,8 @@ export function googleErrorMessage(code: string | undefined): string | undefined
     case "unable_to_create_user":
       return "Use your @firstmate.tech Google Workspace account.";
     case "account_not_linked":
-      return "This account signs in with email and password — use Admin sign in.";
+      // An existing account without a Google login (the Admin, or a user left half-deleted).
+      return "This email's account can't use Google sign-in. The Admin uses Admin sign in; anyone else, ask the Admin.";
     case "access_denied":
       return "Google sign-in was cancelled.";
     default:

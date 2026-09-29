@@ -62,7 +62,9 @@ test("GPS accuracy worse than 50 m → rejected before the radius check", async 
     accuracy: 85,
   });
   await page.getByRole("button", { name: "Clock In" }).click();
-  await expect(page.getByText("A more accurate location is needed – try again outdoors")).toBeVisible();
+  await expect(
+    page.getByText("We need a more accurate location. Try again near a window or outside."),
+  ).toBeVisible();
   await expect(page.getByText("85m accuracy · need 50m or better")).toBeVisible();
   await snap(page, testInfo, "poor-accuracy");
   expect(await eventsFor(db, member.id)).toEqual([]);
@@ -103,7 +105,7 @@ test("Clock Out wording is used when clocking out", async ({ page, db }) => {
   await expect(page.getByText(/You need to be within the office area to clock out/)).toBeVisible();
 });
 
-test("offline → 'No connection – try again', no fake success, nothing queued", async ({
+test("offline → 'You're offline', no fake success, nothing queued", async ({
   page,
   context,
   db,
@@ -111,7 +113,7 @@ test("offline → 'No connection – try again', no fake success, nothing queued
   const member = await ready(page, db, inside());
   await context.setOffline(true);
   await page.getByRole("button", { name: "Clock In" }).click();
-  await expect(page.getByText("No connection – try again")).toBeVisible();
+  await expect(page.getByText("You're offline. Check your connection and try again.")).toBeVisible();
   await expect(page.getByText(/You're at the office · Verified/)).toHaveCount(0);
   await snap(page, testInfo, "offline");
   expect((await geoCalls(page)).current).toBe(0); // failed fast, didn't even ask for location
@@ -131,7 +133,7 @@ test("network drops mid-request → error, never a success state", async ({ page
   await page.getByRole("button", { name: "Clock In" }).click();
   await expect(page.getByText("Checking your location…")).toBeVisible();
   await context.setOffline(true); // after the location request starts, before the server call
-  await expect(page.getByText("No connection – try again")).toBeVisible();
+  await expect(page.getByText("You're offline. Check your connection and try again.")).toBeVisible();
   await expect(page.getByText(/You're at the office · Verified/)).toHaveCount(0);
   await context.setOffline(false);
   expect(await eventsFor(db, member.id)).toEqual([]);

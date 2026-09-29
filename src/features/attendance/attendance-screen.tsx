@@ -296,7 +296,7 @@ function TodayCard({
               <div key={label} className="rounded-panel bg-surface-muted px-3 py-4">
                 <dt className="text-sm text-ink-muted">{label}</dt>
                 <dd className="mt-0.5 text-2xl font-bold text-ink-strong tabular-nums">
-                  {at ? <time dateTime={at}>{formatClockTime(at, timezone)}</time> : "—"}
+                  {at ? <time dateTime={at}>{formatClockTime(at, timezone)}</time> : "Not recorded"}
                 </dd>
               </div>
             ))}

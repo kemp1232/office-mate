@@ -22,8 +22,8 @@ export default async function AdminQrPage() {
               <Eyebrow>Admin</Eyebrow>
               <h1 className="mt-1 text-2xl tracking-tight sm:text-3xl">Office QR code</h1>
               <p className="mt-1 text-ink-muted">
-                Print this and place it at the office. It&apos;s a shortcut only — every Clock In and Clock
-                Out still checks sign-in and location.
+                Print this and place it at the office. It&apos;s only a shortcut. Every Clock In and Clock Out
+                still checks sign-in and location.
               </p>
             </div>
             <QrPoster url={attendanceQrUrl(env().BETTER_AUTH_URL)} />

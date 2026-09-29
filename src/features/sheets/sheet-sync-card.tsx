@@ -25,7 +25,7 @@ export function SheetSyncCard({ initial }: { initial: SheetSyncStatus }) {
         const o = result.outcome;
         setMessage(
           o.status === "disabled"
-            ? "Sync is off — see the setup note below."
+            ? "Sync isn't set up yet, so nothing was sent."
             : o.failed
               ? `Synced ${o.synced}, ${o.failed} failed.`
               : o.synced
@@ -34,7 +34,7 @@ export function SheetSyncCard({ initial }: { initial: SheetSyncStatus }) {
         );
       }
     } catch {
-      setMessage("No connection – try again.");
+      setMessage("You're offline. Check your connection and try again.");
     }
     setPending(false);
   }
@@ -51,8 +51,8 @@ export function SheetSyncCard({ initial }: { initial: SheetSyncStatus }) {
             Google Sheet sync
           </h2>
           <p className="text-sm text-ink-muted">
-            Each Clock In / Clock Out is added to the report Sheet — one tab per office day (e.g. “October 13,
-            2026”) with Name, Email, Time in and Time out.
+            Every Clock In and Clock Out is added to the report Sheet automatically. Each office day gets its
+            own tab (for example “October 13, 2026”) with Name, Email, Time in and Time out.
           </p>
         </div>
       </div>
@@ -82,18 +82,17 @@ export function SheetSyncCard({ initial }: { initial: SheetSyncStatus }) {
         </p>
       ) : null}
 
-      {status.serviceAccountEmail ? (
+      {!status.configured ? (
         <p className="text-sm text-ink-muted">
-          Share the Sheet with{" "}
-          <span className="font-bold break-all text-ink">{status.serviceAccountEmail}</span> as an{" "}
-          <strong>Editor</strong>.
+          Sync isn&apos;t connected yet. Clock ins are still saved, and they&apos;ll be added to the Sheet
+          once it is.
         </p>
-      ) : (
-        <p className="text-sm text-ink-muted">
-          Add a Google service account (<code>GOOGLE_SERVICE_ACCOUNT_EMAIL</code> and{" "}
-          <code>GOOGLE_SERVICE_ACCOUNT_KEY</code>) to turn sync on. Clock-ins are queued until then.
-        </p>
-      )}
+      ) : null}
+
+      <p className="text-sm text-ink-muted">
+        <strong className="text-ink">Sync now</strong> is a manual backup. You only need it if the Sheet
+        doesn&apos;t match the Attendance log.
+      </p>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Button

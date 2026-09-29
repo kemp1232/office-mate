@@ -137,7 +137,7 @@ export function errorMessage(
     case "ACCURACY_TOO_LOW":
       return {
         tone: "warning",
-        title: "A more accurate location is needed – try again outdoors",
+        title: "We need a more accurate location. Try again near a window or outside.",
         detail: `${formatMeters(error.accuracyM)} accuracy · need ${formatMeters(error.thresholdM)} or better`,
         retry: true,
       };
@@ -151,7 +151,7 @@ export function errorMessage(
     case "OFFLINE":
       return {
         tone: "danger",
-        title: "No connection – try again",
+        title: "You're offline. Check your connection and try again.",
         detail: error.unconfirmed
           ? `We couldn't confirm your ${actionLabel(action)}. Trying again won't record it twice.`
           : undefined,

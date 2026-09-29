@@ -72,6 +72,9 @@ export default defineConfig({
       // Placeholder Google client so the sign-in redirect can be asserted (Google itself is stubbed).
       GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID!,
       GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET!,
+      // Never let test clock-ins reach a real Google Sheet (next also reads .env.local).
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: "",
+      GOOGLE_SERVICE_ACCOUNT_KEY: "",
     },
   },
 });

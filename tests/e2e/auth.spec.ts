@@ -39,7 +39,7 @@ test.describe("Team Member sign-in (Google Workspace SSO)", () => {
       await expect(page.getByText("Use your @firstmate.tech Google Workspace account.")).toBeVisible();
     }
     await page.goto("/login?error=account_not_linked");
-    await expect(page.getByText(/signs in with email and password — use Admin sign in/)).toBeVisible();
+    await expect(page.getByText(/can't use Google sign-in/)).toBeVisible();
   });
 
   test("members can't use passwords, and self sign-up / email flows don't exist", async ({ request, db }) => {

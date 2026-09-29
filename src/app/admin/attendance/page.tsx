@@ -33,7 +33,7 @@ export default async function AttendanceLogPage({
   const rows = day ? await getDayAttendance(viewer.id, day) : [];
   if (!rows) throw new Error("Attendance log unavailable");
   const tz = env().ATTENDANCE_TIMEZONE;
-  const time = (iso: string | null) => (iso ? formatClockTime(iso, tz) : "—");
+  const time = (iso: string | null) => (iso ? formatClockTime(iso, tz) : "Not recorded");
   const labels = Object.fromEntries(days.map((d) => [d, tabTitle(d)]));
   const clockedOut = rows.filter((r) => r.clockOutAt).length;
 

@@ -120,7 +120,8 @@ test("Google Sheet sync status is shown to the Admin", async ({ page }) => {
   await expect(card).toBeVisible();
   // The E2E server has no service account, so sync is reported as not set up (never silently failing).
   await expect(card.getByText("Not set up yet")).toBeVisible();
-  await expect(card.getByText(/GOOGLE_SERVICE_ACCOUNT_EMAIL/)).toBeVisible();
+  await expect(card.getByText(/only need it if the Sheet doesn't match the Attendance log/)).toBeVisible();
+  await expect(card.getByText(/Share the Sheet with/)).toHaveCount(0);
 });
 
 test.describe("attendance log", () => {

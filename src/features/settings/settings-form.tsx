@@ -105,7 +105,7 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
         });
       }
     } catch {
-      setNotice({ tone: "danger", title: "No connection – try again" });
+      setNotice({ tone: "danger", title: "You're offline. Check your connection and try again." });
     }
     setPending(false);
   }

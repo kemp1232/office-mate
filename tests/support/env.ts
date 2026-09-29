@@ -6,6 +6,9 @@ import { config } from "dotenv";
  */
 export function loadTestEnv() {
   config({ path: ".env.test", override: true, quiet: true });
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+    throw new Error("Tests must not have Google service-account credentials (they'd write to a real Sheet)");
+  }
   for (const key of ["DATABASE_URL", "DATABASE_ADMIN_URL"]) {
     const host = (process.env[key] ?? "").split("@").pop()?.split(/[:/]/)[0];
     if (host !== "127.0.0.1" && host !== "localhost") {

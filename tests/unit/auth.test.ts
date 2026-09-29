@@ -82,14 +82,14 @@ describe("auth error copy", () => {
     expect(authErrorMessage({ code: "INVALID_EMAIL_OR_PASSWORD", status: 401 })).toMatch(/don't match/);
     expect(authErrorMessage({ code: "USE_GOOGLE_SIGN_IN", status: 403 })).toMatch(/sign in with Google/);
     expect(authErrorMessage({ status: 429 })).toMatch(/Too many attempts/);
-    expect(authErrorMessage({ status: 0 })).toMatch(/No connection/);
+    expect(authErrorMessage({ status: 0 })).toMatch(/You're offline/);
   });
 
   it("explains Google sign-in failures", () => {
     expect(googleErrorMessage(undefined)).toBeUndefined();
     expect(googleErrorMessage("EMAIL_DOMAIN_NOT_ALLOWED")).toMatch(/@firstmate\.tech Google Workspace/);
     expect(googleErrorMessage("unable_to_get_user_info")).toMatch(/@firstmate\.tech Google Workspace/);
-    expect(googleErrorMessage("account_not_linked")).toMatch(/Admin sign in/);
+    expect(googleErrorMessage("account_not_linked")).toMatch(/can't use Google sign-in/);
     expect(googleErrorMessage("access_denied")).toMatch(/cancelled/);
     expect(googleErrorMessage("something_else")).toMatch(/didn't complete/);
   });
