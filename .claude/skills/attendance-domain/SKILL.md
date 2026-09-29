@@ -20,6 +20,11 @@ description: Authoritative Clock In / Clock Out business rules — state machine
   network retries safe. Never add an API that accepts an event type as an instruction.
 - Concurrency: `pg_advisory_xact_lock(user, day)`, then `clock_timestamp()` taken **after** the lock.
 
+## Who clocks
+
+Team Members only. The Admin account is refused by `app.team_member_email` (used by `record_attendance`
+and `get_attendance_state`) and by `clockAction`; the Admin reviews attendance at `/admin/attendance`.
+
 ## Attendance day
 
 - `attendance_day = (clock_timestamp() at time zone ATTENDANCE_TIMEZONE)::date` via `app.attendance_day()`.

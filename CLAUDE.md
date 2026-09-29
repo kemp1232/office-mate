@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# First Mate Geofenced Attendance
+# Office Mate — First Mate Geofenced Attendance
 
 Internal, **phone-first** PWA: a Team Member scans the office QR → signs in → taps Clock In / Clock Out →
 the browser shares its location once → Postgres validates accuracy + geofence and writes an immutable event.
@@ -39,18 +39,21 @@ npm test | npm run test:db | npm run test:integration | npm run test:e2e
 - Auth (Better Auth): Team Members = Google Workspace SSO only (`hd=firstmate.tech`, verified server-side;
   first sign-in creates the member). Admin = `admin@firstmate.tech` email+password only (created by
   `npm run admin:create`). No self sign-up, no email flows, no account linking. Admin allow-list:
-  SQL `app.admin_emails()` = `features/auth/roles.ts` `ADMIN_EMAILS`.
+  SQL `app.admin_emails()` = `features/auth/roles.ts` `ADMIN_EMAILS`. The Admin does NOT clock in/out
+  (UI redirects, action + SQL refuse); their home is `/admin/attendance` (read-only log).
 - Never trust the browser for role, event type, timestamps, distance, or pass/fail.
 - Location: one attempt per explicit tap (`requestBestPosition`: ≤3 sequential `getCurrentPosition`
   readings within ~20 s, stopping once accurate). No `watchPosition`, polling, or background use.
   Don't log coordinates.
 - Attendance rows are write-once: no update/delete APIs, UI, or corrections.
 - No offline attendance, no queued/replayed mutations; the service worker handles GET navigations only.
+- Google Sheet = one-way mirror (`features/sheets`, queue `app.sheet_sync`): never read back, never block
+  or fail a clock on it, never write coordinates.
 - Secrets are server-only (no `NEXT_PUBLIC_*` secrets); `DATABASE_ADMIN_URL` is for tests/scripts only.
 
 ## Out of scope (v1)
 
-reports/dashboards/CSV, Google Sheets sync, multiple offices, Manager/custom roles,
+dashboards/analytics/CSV (only the read-only Admin attendance log exists), multiple offices, Manager/custom roles,
 role-management UI, attendance editing/deletion, spoof detection, payroll/shifts/HR features.
 
 ## Project skills

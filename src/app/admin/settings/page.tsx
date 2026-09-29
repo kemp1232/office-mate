@@ -5,13 +5,18 @@ import { PageTransition } from "@/components/page-transition";
 import { requireAdminPage } from "@/features/auth/dal";
 import { getAdminSettings } from "@/features/settings/service";
 import { SettingsForm } from "@/features/settings/settings-form";
+import { SheetSyncCard } from "@/features/sheets/sheet-sync-card";
+import { getSheetSyncStatus } from "@/features/sheets/sync";
 
 export const metadata: Metadata = { title: "Admin settings" };
 
 export default async function AdminSettingsPage() {
   const viewer = await requireAdminPage("/admin/settings");
-  const settings = await getAdminSettings(viewer.id);
-  if (!settings) throw new Error("Admin settings unavailable");
+  const [settings, sheetSync] = await Promise.all([
+    getAdminSettings(viewer.id),
+    getSheetSyncStatus(viewer.id),
+  ]);
+  if (!settings || !sheetSync) throw new Error("Admin settings unavailable");
 
   return (
     // Outermost element, so React animates the whole page in/out on navigation.
@@ -28,6 +33,7 @@ export default async function AdminSettingsPage() {
               </p>
             </div>
             <SettingsForm initial={settings} />
+            <SheetSyncCard initial={sheetSync} />
           </div>
         </main>
       </div>

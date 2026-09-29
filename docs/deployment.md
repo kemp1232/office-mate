@@ -31,7 +31,7 @@ Done by a Google Workspace admin for `firstmate.tech`, in Google Cloud Console:
 
 1. Create (or pick) a Google Cloud project **inside the firstmate.tech organisation**.
 2. APIs & Services → **OAuth consent screen** → User type **Internal** (only firstmate.tech accounts can
-   use it). App name "First Mate Attendance", support email, the app domain. Scopes: `openid`, `email`,
+   use it). App name "Office Mate", support email, the app domain. Scopes: `openid`, `email`,
    `profile` (the defaults — no sensitive scopes).
 3. APIs & Services → **Credentials** → Create credentials → **OAuth client ID** → _Web application_:
    - Authorised JavaScript origins: `https://<your domain>` (and `http://localhost:3000` for local dev)
@@ -44,20 +44,27 @@ The app itself enforces the domain too: Better Auth's Google provider is configu
 only accepts `@firstmate.tech` users. Personal Gmail accounts are refused even if the consent screen
 were made External. No email/SMTP service is needed.
 
+## 2b. Google Sheets sync (service account)
+
+Follow [`google-sheets-sync.md`](google-sheets-sync.md) → Setup: enable the Google Sheets API, create a
+service account + JSON key, share the report Sheet with its email as **Editor**.
+
 ## 3. Vercel project
 
 1. Import the Git repository (framework: Next.js; build `npm run build`; install `npm install`).
 2. Settings → General → Node.js version **24.x**.
 3. Environment variables (Production, and Preview if you use previews):
 
-   | Name                   | Value                                                                         |
-   | ---------------------- | ----------------------------------------------------------------------------- |
-   | `DATABASE_URL`         | the attendance_app pooler URL from step 1.5                                   |
-   | `BETTER_AUTH_SECRET`   | `openssl rand -base64 32` (different per environment)                         |
-   | `BETTER_AUTH_URL`      | `https://<your production domain>` (e.g. `https://attendance.firstmate.tech`) |
-   | `ATTENDANCE_TIMEZONE`  | `Asia/Manila`                                                                 |
-   | `GOOGLE_CLIENT_ID`     | from step 2                                                                   |
-   | `GOOGLE_CLIENT_SECRET` | from step 2                                                                   |
+   | Name                           | Value                                                                         |
+   | ------------------------------ | ----------------------------------------------------------------------------- |
+   | `DATABASE_URL`                 | the attendance_app pooler URL from step 1.5                                   |
+   | `BETTER_AUTH_SECRET`           | `openssl rand -base64 32` (different per environment)                         |
+   | `BETTER_AUTH_URL`              | `https://<your production domain>` (e.g. `https://attendance.firstmate.tech`) |
+   | `ATTENDANCE_TIMEZONE`          | `Asia/Manila`                                                                 |
+   | `GOOGLE_CLIENT_ID`             | from step 2                                                                   |
+   | `GOOGLE_CLIENT_SECRET`         | from step 2                                                                   |
+   | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | from step 2b                                                                  |
+   | `GOOGLE_SERVICE_ACCOUNT_KEY`   | from step 2b (the JSON key's `private_key`)                                   |
 
    Do **not** add `DATABASE_ADMIN_URL`, and never prefix secrets with `NEXT_PUBLIC_`.
 
@@ -102,6 +109,7 @@ Admin account).
 - [ ] A Team Member opening `/admin/settings` is sent back to Attendance.
 - [ ] Add to Home Screen on iOS Safari and Android Chrome; launch from the icon; check the header and
       bottom button clear the notch / home indicator.
+- [ ] The report Google Sheet gets a tab named after today (e.g. "October 13, 2026") with your row.
 - [ ] In Supabase Table Editor (`app.attendance_events`) the two rows show `source = QR`, the office
       snapshot and distance.
 

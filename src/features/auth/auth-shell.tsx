@@ -25,8 +25,8 @@ export function AuthShell({
           <div className="flex items-center gap-3">
             <Image src="/brand/mark.svg" alt="" width={44} height={44} priority />
             <div className="leading-tight">
-              <p className="text-base font-bold text-ink-strong">First Mate</p>
-              <p className="text-sm text-ink-muted">Attendance</p>
+              <p className="text-base font-bold text-ink-strong">Office Mate</p>
+              <p className="text-sm text-ink-muted">by First Mate</p>
             </div>
           </div>
           <section className="rounded-card border border-stroke bg-surface p-5 sm:p-7">

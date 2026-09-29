@@ -2,6 +2,23 @@
 
 Status: **approved 2026-09-28 with Revisions 1–2 below.** Research date: 2026-09-28.
 
+## Revision 4 — 2026-09-29: Admin attendance log (was out of scope)
+
+| Topic | Decision |
+|---|---|
+| Admin clocking | The Admin no longer clocks in/out: `/attendance` redirects to the log; the action and SQL refuse the Admin. |
+| Log | `/admin/attendance` (Admin home): "Office day" select of all days with events (newest first, default latest); rows show name (email if no name), Clock in, Clock out. Read-only — no edits, no exports. |
+
+## Revision 3 — 2026-09-29: Google Sheets sync (was out of scope)
+
+| Topic | Decision |
+|---|---|
+| Target | The Admin's report link (Google Sheet). One tab per office day, titled like "October 13, 2026", newest first. |
+| Row | One per person per day: Name, Email, Time in, Time out (24-hour, org timezone). Clock In appends; Clock Out fills Time out on the same row. |
+| Delivery | Transactional outbox `app.sheet_sync` (trigger on attendance insert) + worker run via `after()` on each clock, and **Sync now** in Admin Settings. Idempotent row rewrite from Postgres; versioned so late events aren't lost. |
+| Auth | Google service account (`GOOGLE_SERVICE_ACCOUNT_EMAIL` / `_KEY`), Sheet shared as Editor. `google-auth-library` + Sheets REST v4. |
+| Guardrails | One-way; never blocks/fails a clock; no coordinates written. |
+
 ## Revision 2 — 2026-09-29 (supersedes Revision 1's authentication rows)
 
 | Topic | Decision |

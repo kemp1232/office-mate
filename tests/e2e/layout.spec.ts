@@ -103,8 +103,8 @@ test("admin pages", async ({ page, db }, testInfo) => {
   await checkLayout(page, testInfo, "admin-settings");
   await page.goto("/admin/qr");
   await checkLayout(page, testInfo, "admin-qr");
-  await page.goto("/attendance");
-  await checkLayout(page, testInfo, "admin-attendance");
+  await page.goto("/admin/attendance");
+  await checkLayout(page, testInfo, "admin-attendance-log");
 });
 
 test("reduced motion disables animations", async ({ page }) => {
@@ -122,8 +122,8 @@ test("PWA manifest is valid and installable", async ({ request }) => {
   expect(res.ok()).toBe(true);
   const manifest = await res.json();
   expect(manifest).toMatchObject({
-    name: "First Mate Attendance",
-    short_name: "Attendance",
+    name: "Office Mate",
+    short_name: "Office Mate",
     display: "standalone",
     start_url: "/attendance",
   });
@@ -177,4 +177,10 @@ test("route changes fade out then in over 0.6 s", async ({ page, browserName }) 
   expect(animations).toEqual(expect.arrayContaining(["fade-out 300ms +0ms", "fade-in 300ms +300ms"]));
   // The browser's default whole-page cross-fade is switched off.
   expect(animations.some((a) => a.startsWith("-ua-view-transition"))).toBe(false);
+});
+
+test("the app is branded Office Mate", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page).toHaveTitle("Sign in · Office Mate");
+  await expect(page.getByText("Office Mate", { exact: true })).toBeVisible();
 });

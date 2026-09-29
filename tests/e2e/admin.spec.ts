@@ -9,7 +9,9 @@ import {
   adminSignIn,
   ADMIN_TEST_PASSWORD,
   E2E_ORIGIN,
+  newMember,
 } from "./fixtures";
+import { createUser } from "../support/db";
 
 test.beforeEach(async ({ page, db }) => {
   await configureOffice(db, { configured: false });
@@ -111,4 +113,61 @@ test("QR page shows one static code for the Attendance URL and prints cleanly", 
   await expect(page.getByRole("button", { name: "Print QR code" })).toBeHidden();
   await expect(page.locator("header")).toBeHidden();
   await snap(page, testInfo, "qr-print", true);
+});
+
+test("Google Sheet sync status is shown to the Admin", async ({ page }) => {
+  const card = page.getByRole("region", { name: "Google Sheet sync" });
+  await expect(card).toBeVisible();
+  // The E2E server has no service account, so sync is reported as not set up (never silently failing).
+  await expect(card.getByText("Not set up yet")).toBeVisible();
+  await expect(card.getByText(/GOOGLE_SERVICE_ACCOUNT_EMAIL/)).toBeVisible();
+});
+
+test.describe("attendance log", () => {
+  test("defaults to the latest office day and switches days from the select", async ({ page, db }) => {
+    const tag = Math.random().toString(36).slice(2, 7);
+    const member = await newMember(db, `Log Tester ${tag}`);
+    const noName = await createUser(db, { name: "" });
+    // Today (Manila) is always the newest office day; yesterday is the previous one.
+    const { rows } = await db.query<{ today: string; yesterday: string }>(
+      `select (now() at time zone 'Asia/Manila')::date::text as today,
+              ((now() at time zone 'Asia/Manila')::date - 1)::text as yesterday`,
+    );
+    const { today, yesterday } = rows[0];
+    const insert = (u: { id: string; email: string }, day: string, type: string, manila: string) =>
+      db.query(
+        `insert into app.attendance_events (user_id, email, event_type, attendance_day, recorded_at, latitude, longitude,
+           accuracy_m, distance_m, office_latitude, office_longitude, radius_m, accuracy_threshold_m)
+         values ($1, $2, $3, $4::date, ($4 || ' ' || $5)::timestamp at time zone 'Asia/Manila',
+                 14.5547, 121.0244, 5, 0, 14.5547, 121.0244, 300, 50)`,
+        [u.id, u.email, type, day, manila],
+      );
+    await insert(member, today, "CLOCK_IN", "00:04");
+    await insert(member, today, "CLOCK_OUT", "00:32");
+    await insert(noName, today, "CLOCK_IN", "00:10");
+    await insert(member, yesterday, "CLOCK_IN", "08:45");
+
+    await page.goto("/admin/attendance");
+    const select = page.getByLabel("Office day");
+    await expect(select).toHaveValue(today);
+    const row = page.getByRole("row", { name: new RegExp(`Log Tester ${tag}`) });
+    await expect(row).toContainText("00:04");
+    await expect(row).toContainText("00:32");
+    // No name → the email is shown instead.
+    const emailRow = page.getByRole("row", { name: new RegExp(noName.email) });
+    await expect(emailRow).toContainText("00:10");
+    await expect(emailRow).toContainText("Not yet");
+
+    await select.selectOption(yesterday);
+    await expect(page).toHaveURL(new RegExp(`day=${yesterday}`));
+    await expect(page.getByRole("row", { name: new RegExp(`Log Tester ${tag}`) })).toContainText("08:45");
+  });
+
+  test("the Admin has no Clock In screen", async ({ page }) => {
+    await page.goto("/attendance");
+    await expect(page).toHaveURL(/\/admin\/attendance/);
+    await expect(page.getByRole("button", { name: "Clock In" })).toHaveCount(0);
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/admin\/attendance/);
+  });
 });

@@ -19,8 +19,8 @@ export function QrPoster({ url }: { url: string }) {
         <div className="flex items-center gap-3">
           <Image src="/brand/mark.svg" alt="" width={48} height={48} />
           <div className="text-left leading-tight">
-            <p className="text-lg font-bold text-ink-strong">First Mate</p>
-            <p className="text-sm text-ink-muted">Attendance</p>
+            <p className="text-lg font-bold text-ink-strong">Office Mate</p>
+            <p className="text-sm text-ink-muted">by First Mate</p>
           </div>
         </div>
         <h2 className="text-2xl tracking-tight print:text-4xl">Scan to Clock In / Clock Out</h2>

@@ -44,7 +44,8 @@ description: Authentication, authorisation and secret-handling rules (Better Aut
 ## Secrets
 
 - Server-only env: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`,
-  `GOOGLE_CLIENT_SECRET`, `ATTENDANCE_TIMEZONE`. No `NEXT_PUBLIC_` secrets. `DATABASE_ADMIN_URL` is tests/scripts only — never Vercel.
+  `GOOGLE_CLIENT_SECRET`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_SERVICE_ACCOUNT_KEY` (Sheets export),
+  `ATTENDANCE_TIMEZONE`. No `NEXT_PUBLIC_` secrets. `DATABASE_ADMIN_URL` is tests/scripts only — never Vercel.
 - Validate env with `src/lib/env.ts`.
 
 ## Notes

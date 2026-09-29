@@ -210,7 +210,7 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
               spellCheck={false}
               value={reportUrl}
               onChange={(e) => setReportUrl(e.target.value)}
-              hint="Admin-only · not synced with attendance data in v1."
+              hint="Admin-only · every Clock In and Clock Out is added here, one tab per office day."
               error={errors.reportUrl}
             />
             <LinkButton

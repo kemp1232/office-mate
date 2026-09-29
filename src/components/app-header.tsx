@@ -1,17 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ClipboardCheck, QrCode, Settings } from "lucide-react";
+import { ClipboardList, QrCode, Settings } from "lucide-react";
 import { iconButtonClass } from "@/components/ui/button";
 import type { Viewer } from "@/features/auth/dal";
 import { SignOutButton } from "@/features/auth/sign-out-button";
 
-/** Compact First Mate header. Admin links only render for Admins (and are enforced server-side). */
+/** Compact Office Mate header. Admin links only render for Admins (and are enforced server-side). */
 export function AppHeader({
   viewer,
   current,
 }: {
   viewer: Viewer;
-  current?: "attendance" | "settings" | "qr";
+  current?: "attendance" | "log" | "settings" | "qr";
 }) {
   return (
     <header
@@ -20,27 +20,27 @@ export function AppHeader({
     >
       <div className="mx-auto flex h-(--header-height) max-w-(--container-admin) items-center justify-between gap-3">
         <Link
-          href="/attendance"
-          aria-label="First Mate Attendance home"
+          href={viewer.role === "admin" ? "/admin/attendance" : "/attendance"}
+          aria-label="Office Mate home"
           className="flex min-h-(--touch-min) min-w-(--touch-min) items-center gap-2.5 rounded-button pr-2"
         >
           <Image src="/brand/mark.svg" alt="" width={34} height={34} priority />
           <span className="leading-tight whitespace-nowrap max-[359px]:sr-only">
-            <span className="block text-[0.95rem] font-bold text-ink-strong">First Mate</span>
-            <span className="block text-xs text-ink-muted">Attendance</span>
+            <span className="block text-[0.95rem] font-bold text-ink-strong">Office Mate</span>
+            <span className="block text-xs text-ink-muted">by First Mate</span>
           </span>
         </Link>
         <nav aria-label="Main" className="flex items-center gap-1">
           {viewer.role === "admin" ? (
             <>
               <Link
-                href="/attendance"
+                href="/admin/attendance"
                 className={iconButtonClass}
-                aria-label="Attendance"
-                title="Attendance"
-                aria-current={current === "attendance" ? "page" : undefined}
+                aria-label="Attendance log"
+                title="Attendance log"
+                aria-current={current === "log" ? "page" : undefined}
               >
-                <ClipboardCheck aria-hidden className="size-5" />
+                <ClipboardList aria-hidden className="size-5" />
               </Link>
               <Link
                 href="/admin/settings"

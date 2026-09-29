@@ -7,7 +7,7 @@ description: PWA/installability rules that keep attendance online-only. Use befo
 
 ## Installability
 
-- `src/app/manifest.ts`: name "First Mate Attendance", short_name "Attendance", `start_url /attendance`,
+- `src/app/manifest.ts`: name "Office Mate", short_name "Office Mate", `start_url /attendance`,
   `display standalone`, theme/background `#f9f9f9`, icons 192/512 + maskable 512 (`public/icons/`).
 - Apple: `src/app/apple-icon.png` + `metadata.appleWebApp`. Regenerate icons: `node scripts/generate-icons.mjs`.
 - Viewport: `viewportFit: "cover"`, `themeColor`; zoom stays enabled (accessibility).

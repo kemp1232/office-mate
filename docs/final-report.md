@@ -1,4 +1,4 @@
-# First Mate Attendance — v1 delivery report
+# Office Mate — v1 delivery report
 
 Date: 2026-09-28 · Status: **implemented and verified locally.** No production accounts (Supabase
 cloud, Vercel, Google Cloud OAuth client) have been created or configured; see "Manual setup checklist".
@@ -126,14 +126,15 @@ Full instructions are in `docs/deployment.md`:
 
 ## 13. Environment variables
 
-| Name                                        | Where              | Notes                                                                      |
-| ------------------------------------------- | ------------------ | -------------------------------------------------------------------------- |
-| `DATABASE_URL`                              | Vercel + local     | `attendance_app` role; production uses the transaction pooler on port 6543 |
-| `BETTER_AUTH_SECRET`                        | Vercel + local     | ≥ 32 random characters                                                     |
-| `BETTER_AUTH_URL`                           | Vercel + local     | canonical https origin                                                     |
-| `ATTENDANCE_TIMEZONE`                       | Vercel + local     | `Asia/Manila`                                                              |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Vercel + local     | Google Workspace OAuth client (optional locally)                           |
-| `DATABASE_ADMIN_URL`                        | tests/scripts only | never on Vercel                                                            |
+| Name                                                          | Where              | Notes                                                                      |
+| ------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                | Vercel + local     | `attendance_app` role; production uses the transaction pooler on port 6543 |
+| `BETTER_AUTH_SECRET`                                          | Vercel + local     | ≥ 32 random characters                                                     |
+| `BETTER_AUTH_URL`                                             | Vercel + local     | canonical https origin                                                     |
+| `ATTENDANCE_TIMEZONE`                                         | Vercel + local     | `Asia/Manila`                                                              |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`                   | Vercel + local     | Google Workspace OAuth client (optional locally)                           |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` / `GOOGLE_SERVICE_ACCOUNT_KEY` | Vercel + local     | Google Sheets export (optional)                                            |
+| `DATABASE_ADMIN_URL`                                          | tests/scripts only | never on Vercel                                                            |
 
 ## 14. Map provider
 
@@ -178,6 +179,8 @@ The Playwright projects were: iPhone SE 320px, Pixel 7, iPhone 15 Pro Max, phone
 
 ## 20. Known limitations
 
+- Google Sheets sync is tested against an in-memory stand-in; the real Google round trip needs the service account and a manual check.
+
 - A shift that crosses midnight can't Clock Out after midnight, because the attendance day has changed.
 - Location comes from the browser, so it can be spoofed (DevTools or a mock-location app). Advanced anti-spoofing is out of scope by design.
 - OpenFreeMap has no SLA (it only affects the Admin map).
@@ -190,8 +193,7 @@ The Playwright projects were: iPhone SE 320px, Pixel 7, iPhone 15 Pro Max, phone
 
 ## 21. Deferred to v2
 
-Google Sheets sync (`docs/future-google-sheets-sync.md`),
-in-app reports, a corrections workflow, multiple offices, shift handling across midnight, and a full CSP.
+In-app reports, a corrections workflow, multiple offices, shift handling across midnight, and a full CSP.
 
 ## 22. Assumptions and decisions
 
@@ -250,7 +252,7 @@ devices or accounts. ↺ = superseded by the owner's decision.
 
 - ✅ Report link and Open Report
 - ✅ No in-app reports
-- ✅ No Sheets or Apps Script sync
+- ✅ One-way Google Sheets sync added at the owner's request (Revision 3): one tab per office day, Name / Email / Time in / Time out (`docs/google-sheets-sync.md`); no Apps Script
 
 **PWA:**
 

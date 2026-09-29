@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/attendance",
-    name: "First Mate Attendance",
-    short_name: "Attendance",
+    name: "Office Mate",
+    short_name: "Office Mate",
     description: "Location-verified Clock In / Clock Out for the First Mate team.",
     start_url: "/attendance",
     scope: "/",

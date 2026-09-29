@@ -109,7 +109,7 @@ test.describe("authorisation", () => {
     await signInAs(page, db, member);
     await expect(page).toHaveURL(/\/attendance$/);
     await expect(page.getByRole("link", { name: "Admin settings" })).toHaveCount(0);
-    for (const path of ["/admin", "/admin/settings", "/admin/qr"]) {
+    for (const path of ["/admin", "/admin/attendance", "/admin/settings", "/admin/qr"]) {
       await page.goto(path);
       await expect(page).toHaveURL(/\/attendance$/);
     }

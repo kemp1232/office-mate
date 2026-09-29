@@ -3,6 +3,7 @@ import { AppHeader } from "@/components/app-header";
 import { PageTransition } from "@/components/page-transition";
 import { AttendanceScreen } from "@/features/attendance/attendance-screen";
 import { getTodayState } from "@/features/attendance/service";
+import { redirect } from "next/navigation";
 import { requireViewer } from "@/features/auth/dal";
 
 export const metadata: Metadata = { title: "Attendance" };
@@ -15,6 +16,8 @@ export default async function AttendancePage({
   const { source } = await searchParams;
   const isQr = source === "qr";
   const viewer = await requireViewer(isQr ? "/attendance?source=qr" : "/attendance");
+  // The Admin doesn't clock in/out; their home is the attendance log.
+  if (viewer.role === "admin") redirect("/admin/attendance");
   const state = await getTodayState(viewer.id);
   if (!state) throw new Error("Attendance state unavailable");
 
@@ -28,7 +31,6 @@ export default async function AttendancePage({
             initialState={state}
             source={isQr ? "QR" : "DIRECT"}
             firstName={viewer.name.split(/\s+/)[0] || viewer.name}
-            isAdmin={viewer.role === "admin"}
             serverNow={new Date().toISOString()}
           />
         </main>

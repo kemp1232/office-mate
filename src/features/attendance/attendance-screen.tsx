@@ -1,15 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import {
-  CircleCheckBig,
-  ClockArrowDown,
-  ClockArrowUp,
-  LogIn,
-  MapPin,
-  RotateCw,
-  Settings,
-} from "lucide-react";
+import { CircleCheckBig, ClockArrowDown, ClockArrowUp, LogIn, MapPin, RotateCw } from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/card";
 import { StatusPanel } from "@/components/ui/status-panel";
@@ -34,11 +26,10 @@ type Props = {
   initialState: AttendanceState;
   source: AttendanceSource;
   firstName: string;
-  isAdmin: boolean;
   serverNow: string;
 };
 
-export function AttendanceScreen({ initialState, source, firstName, isAdmin, serverNow }: Props) {
+export function AttendanceScreen({ initialState, source, firstName, serverNow }: Props) {
   const [screen, dispatch] = useReducer(screenReducer, initialState, initialScreenState);
   const { attendance, phase } = screen;
   const busy = isBusy(phase);
@@ -165,7 +156,7 @@ export function AttendanceScreen({ initialState, source, firstName, isAdmin, ser
               showHint={phase.name === "idle"}
             />
           ) : (
-            <NotConfigured isAdmin={isAdmin} />
+            <NotConfigured />
           )}
         </div>
       </div>
@@ -321,28 +312,13 @@ function TodayCard({
   );
 }
 
-function NotConfigured({ isAdmin }: { isAdmin: boolean }) {
+function NotConfigured() {
   return (
     <StatusPanel
-      tone={isAdmin ? "warning" : "neutral"}
-      title={isAdmin ? "Attendance setup incomplete" : "Attendance isn't set up yet"}
-      detail={
-        isAdmin
-          ? "Set the office location on the map before the team can clock in."
-          : "An Admin needs to set the office location first. Please check back soon."
-      }
-    >
-      {isAdmin ? (
-        <LinkButton
-          size="sm"
-          href="/admin/settings"
-          icon={<Settings aria-hidden className="size-5" />}
-          className="mt-3"
-        >
-          Open settings
-        </LinkButton>
-      ) : null}
-    </StatusPanel>
+      tone="neutral"
+      title="Attendance isn't set up yet"
+      detail="An Admin needs to set the office location first. Please check back soon."
+    />
   );
 }
 

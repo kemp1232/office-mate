@@ -16,7 +16,8 @@ description: Production deployment checklist for Vercel + Supabase Postgres + Go
    `https://<domain>/api/auth/callback/google`.
 5. **Vercel env (Production + Preview)**: `DATABASE_URL`, `BETTER_AUTH_SECRET` (`openssl rand -base64 32`),
    `BETTER_AUTH_URL` (canonical https origin), `ATTENDANCE_TIMEZONE=Asia/Manila`, `GOOGLE_CLIENT_ID`,
-   `GOOGLE_CLIENT_SECRET`. Never set `DATABASE_ADMIN_URL` or any `NEXT_PUBLIC_` secret. Node 24.
+   `GOOGLE_CLIENT_SECRET`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_SERVICE_ACCOUNT_KEY` (share the report Sheet
+   with that email as Editor — `docs/google-sheets-sync.md`). Never set `DATABASE_ADMIN_URL` or any `NEXT_PUBLIC_` secret. Node 24.
 6. **Admin**: `DATABASE_URL=<prod app-role url> npm run admin:create` from a trusted machine.
 7. **First-run**: Admin signs in → Settings → drop office pin → Save → print QR from /admin/qr.
 8. **Smoke test on a phone**: Continue with Google with a @firstmate.tech account → back on Attendance →

@@ -28,6 +28,10 @@ const schema = z.object({
   // the Admin password sign-in works.
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
+  // Google service account used to write attendance into the report Google Sheet (share the Sheet
+  // with this email as Editor). Optional: without it, sync is simply off and events queue up.
+  GOOGLE_SERVICE_ACCOUNT_EMAIL: optionalString,
+  GOOGLE_SERVICE_ACCOUNT_KEY: optionalString,
 });
 
 export type ServerEnv = z.infer<typeof schema>;

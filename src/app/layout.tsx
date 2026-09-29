@@ -15,10 +15,10 @@ const satoshi = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "First Mate Attendance", template: "%s · First Mate Attendance" },
+  title: { default: "Office Mate", template: "%s · Office Mate" },
   description: "Location-verified Clock In / Clock Out for the First Mate team.",
-  applicationName: "First Mate Attendance",
-  appleWebApp: { capable: true, title: "Attendance", statusBarStyle: "default" },
+  applicationName: "Office Mate",
+  appleWebApp: { capable: true, title: "Office Mate", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   robots: { index: false, follow: false },
 };

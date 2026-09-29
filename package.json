@@ -25,6 +25,7 @@
   "dependencies": {
     "@vercel/functions": "^3.9.9",
     "better-auth": "^1.7.6",
+    "google-auth-library": "^11.1.0",
     "kysely": "^0.29.6",
     "lucide-react": "^1.48.0",
     "maplibre-gl": "^6.11.2",

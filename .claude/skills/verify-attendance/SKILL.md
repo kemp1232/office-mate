@@ -19,7 +19,7 @@ npm run format:check && npm run lint && npm run typecheck
 ```bash
 npm test                  # unit: roles, safe redirects, reducer, copy, formatting (TZ=UTC), schemas
 npm run test:db           # pgTAP: privileges, geofence/day, state machine, immutability, settings
-npm run test:integration  # real Postgres as attendance_app: concurrency (10 parallel), retries, authz
+npm run test:integration  # real Postgres: concurrency (10 parallel), retries, authz, Sheets sync queue + worker
 npm run build
 npm run test:e2e          # Playwright projects: iphone-se 320px, pixel-7, iphone-15-pro-max,
                           # phone-landscape, webkit-iphone (real WebKit), desktop 1440

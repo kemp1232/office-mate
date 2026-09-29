@@ -29,7 +29,7 @@ const domainError = () =>
 function createAuth() {
   const e = env();
   return betterAuth({
-    appName: "First Mate Attendance",
+    appName: "Office Mate",
     baseURL: e.BETTER_AUTH_URL,
     secret: e.BETTER_AUTH_SECRET,
     database: {

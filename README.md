@@ -1,4 +1,4 @@
-# First Mate Attendance
+# Office Mate
 
 A phone-first, installable web app that replaces the Google Form attendance sheet with an
 **identity-verified, location-verified** Clock In / Clock Out.
@@ -9,10 +9,13 @@ Scan office QR → sign in (once) → tap Clock In → location checked once →
 
 - Team Members sign in with **Google Workspace SSO** (`@firstmate.tech` accounts only, checked server-side);
   their first sign-in makes them a Team Member. The single Admin (`admin@firstmate.tech`) uses email + password.
-- The office geofence (one pin, radius, GPS accuracy threshold) is set by the Admin on a map.
+- The office geofence (one pin, radius, GPS accuracy threshold) is set by the Admin on a map. The Admin
+  doesn't clock in; they review a read-only **attendance log** per office day at `/admin/attendance`.
 - Every event is **write-once** and stores how it was validated (coordinates, accuracy, distance, the
   settings it was checked against, DB timestamp, source).
 - Location is requested **only** when someone taps Clock In / Clock Out. Nothing is tracked.
+- Each Clock In / Clock Out is mirrored to the Admin's **Google Sheet** — one tab per office day
+  ("October 13, 2026") with Name, Email, Time in, Time out ([`docs/google-sheets-sync.md`](docs/google-sheets-sync.md)).
 
 > Scope, rules and decisions: [`docs/init.md`](docs/init.md) (spec), [`docs/implementation-plan.md`](docs/implementation-plan.md)
 > (plan + Revision 1), [`docs/deployment.md`](docs/deployment.md), [`docs/design-system.md`](docs/design-system.md).
@@ -56,7 +59,7 @@ server-derived action, nothing is written and the real state comes back (safe re
 ### Project layout
 
 ```
-src/app/                 routes (login, login/admin, attendance, admin/settings, admin/qr,
+src/app/                 routes (login, login/admin, attendance, admin/attendance (log), admin/settings, admin/qr,
                          api/auth, manifest.ts, error/not-found)
 src/features/attendance  model.ts (UI reducer), messages.ts (copy), geolocation.ts, service.ts, actions.ts, screen
 src/features/auth        dal.ts, roles.ts, safe-next.ts, forms
@@ -107,14 +110,15 @@ The local Supabase uses ports **573xx** so it can run next to other local Supaba
 
 All server-only (see [`.env.example`](.env.example)):
 
-| Variable                                  | Purpose                                                                     |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| `DATABASE_URL`                            | Postgres as `attendance_app` (prod: Supabase transaction pooler, port 6543) |
-| `BETTER_AUTH_SECRET`                      | ≥ 32 random chars                                                           |
-| `BETTER_AUTH_URL`                         | canonical https origin (auth, Google callback, QR target)                   |
-| `ATTENDANCE_TIMEZONE`                     | org timezone defining the attendance day (default `Asia/Manila`)            |
-| `GOOGLE_CLIENT_ID` `GOOGLE_CLIENT_SECRET` | Google Workspace SSO OAuth client (server-only)                             |
-| `DATABASE_ADMIN_URL`                      | **tests only** (privileged fixtures). Never set on Vercel.                  |
+| Variable                                                    | Purpose                                                                                |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                              | Postgres as `attendance_app` (prod: Supabase transaction pooler, port 6543)            |
+| `BETTER_AUTH_SECRET`                                        | ≥ 32 random chars                                                                      |
+| `BETTER_AUTH_URL`                                           | canonical https origin (auth, Google callback, QR target)                              |
+| `ATTENDANCE_TIMEZONE`                                       | org timezone defining the attendance day (default `Asia/Manila`)                       |
+| `GOOGLE_CLIENT_ID` `GOOGLE_CLIENT_SECRET`                   | Google Workspace SSO OAuth client (server-only)                                        |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` `GOOGLE_SERVICE_ACCOUNT_KEY` | service account that writes the report Google Sheet (optional; sync is off without it) |
+| `DATABASE_ADMIN_URL`                                        | **tests only** (privileged fixtures). Never set on Vercel.                             |
 
 ## Key behaviours
 
@@ -135,5 +139,4 @@ plus a production smoke test.
 
 ## Deferred to later versions
 
-Google Sheets sync ([`docs/future-google-sheets-sync.md`](docs/future-google-sheets-sync.md)),
-in-app reports, corrections workflow, multiple offices, shift handling across midnight.
+In-app reports, corrections workflow, multiple offices, shift handling across midnight.
