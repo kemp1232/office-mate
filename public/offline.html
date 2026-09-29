@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f9f9f9" />
+    <title>No connection · First Mate Attendance</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+        background: #f9f9f9;
+        color: #282943;
+        box-sizing: border-box;
+        font:
+          500 16px/1.45 ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+      main {
+        width: 100%;
+        max-width: 440px;
+        background: #fff;
+        border: 1px solid #ececf0;
+        border-radius: 18px;
+        padding: 28px 20px;
+        text-align: center;
+      }
+      h1 {
+        margin: 12px 0 6px;
+        font-size: 20px;
+        color: #131313;
+      }
+      p {
+        margin: 0 0 20px;
+        color: #5f606c;
+      }
+      button {
+        min-height: 52px;
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        background: #424bd1;
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:focus-visible {
+        outline: 2px solid #424bd1;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg
+        aria-hidden="true"
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#b42318"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 20h.01" />
+        <path d="M8.5 16.43a5 5 0 0 1 7 0" />
+        <path d="M5 12.86a10 10 0 0 1 5.17-2.69" />
+        <path d="M19 12.86a10 10 0 0 0-2-1.47" />
+        <path d="M2 8.82a15 15 0 0 1 4.18-2.64" />
+        <path d="M22 8.82a15 15 0 0 0-11.29-3.76" />
+        <path d="m2 2 20 20" />
+      </svg>
+      <h1>No connection – try again</h1>
+      <p>Clock In and Clock Out need an internet connection. Nothing is saved offline.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

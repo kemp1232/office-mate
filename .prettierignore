@@ -1,0 +1,11 @@
+.next
+node_modules
+package-lock.json
+supabase/.temp
+supabase/.branches
+playwright-report
+test-results
+coverage
+docs/init.md
+*.pdf
+docs/implementation-plan.md
