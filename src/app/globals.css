@@ -61,7 +61,7 @@
   /* Motion */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --duration-base: 200ms;
-  --duration-page: 300ms; /* per phase: 300 ms out + 300 ms in = 0.6 s route change */
+  --duration-page: 200ms; /* per phase: 200 ms out + 200 ms in = 0.4 s route change */
 
   /* Layout */
   --container-attendance: 27.5rem; /* 440px focused phone column */

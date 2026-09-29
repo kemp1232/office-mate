@@ -24,10 +24,7 @@ export function AuthShell({
         <div className="mx-auto flex w-full max-w-(--container-attendance) flex-1 flex-col justify-center gap-6 py-8">
           <div className="flex items-center gap-3">
             <Image src="/brand/mark.svg" alt="" width={44} height={44} priority />
-            <div className="leading-tight">
-              <p className="text-base font-bold text-ink-strong">Office Mate</p>
-              <p className="text-sm text-ink-muted">by First Mate</p>
-            </div>
+            <p className="text-base leading-tight font-bold text-ink-strong">Office Mate</p>
           </div>
           <section className="rounded-card border border-stroke bg-surface p-5 sm:p-7">
             {eyebrow ? <Eyebrow className="mb-2">{eyebrow}</Eyebrow> : null}

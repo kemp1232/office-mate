@@ -33,8 +33,8 @@ Reference: https://www.firstmate.tech/ (Next.js + Tailwind v4 site) and the mock
 
 ## Motion
 
-- Page fade-through: `<PageTransition>` (React `<ViewTransition>`), old page 300ms out then new 300ms in
-  (0.6 s, `--duration-page`). It must be the page's OUTERMOST element (React only animates enter/exit
+- Page fade-through: `<PageTransition>` (React `<ViewTransition>`), old page 200ms out then new 200ms in
+  (0.4 s, `--duration-page`). It must be the page's OUTERMOST element (React only animates enter/exit
   when no newly inserted DOM node sits above it); never in a layout. The browser's root cross-fade is off.
 - Component transitions 150–200ms `ease-standard` on colour/background/border/opacity.
 - `prefers-reduced-motion` disables animations globally (globals.css). Don't over-animate.

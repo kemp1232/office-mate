@@ -8,6 +8,7 @@ import {
   startGoogleSignIn,
   test,
   E2E_ORIGIN,
+  snap,
 } from "./fixtures";
 import { createUser } from "../support/db";
 
@@ -69,11 +70,20 @@ test.describe("Team Member sign-in (Google Workspace SSO)", () => {
     expect(page.status()).toBe(404);
   });
 
-  test("sign out ends the session", async ({ page, db }) => {
+  test("sign out ends the session", async ({ page, db }, testInfo) => {
     const member = await newMember(db);
     await signInAs(page, db, member);
     await expect(page).toHaveURL(/\/attendance$/);
-    await page.getByRole("button", { name: `Sign out ${member.email}` }).click();
+    // Hold the sign-out request briefly so the pending state is observable.
+    await page.route("**/api/auth/sign-out", async (route) => {
+      await new Promise((r) => setTimeout(r, 800));
+      await route.continue();
+    });
+    const signOut = page.getByRole("button", { name: `Sign out ${member.email}` });
+    await signOut.click();
+    await expect(signOut).toHaveAttribute("aria-busy", "true");
+    await expect(signOut.locator(".animate-spin")).toBeVisible();
+    await snap(page, testInfo, "signing-out");
     await expect(page).toHaveURL(/\/login$/);
     await page.goto("/attendance");
     await expect(page).toHaveURL(/\/login\?next=%2Fattendance$/);

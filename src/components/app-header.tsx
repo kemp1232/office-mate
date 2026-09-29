@@ -25,9 +25,8 @@ export function AppHeader({
           className="flex min-h-(--touch-min) min-w-(--touch-min) items-center gap-2.5 rounded-button pr-2"
         >
           <Image src="/brand/mark.svg" alt="" width={34} height={34} priority />
-          <span className="leading-tight whitespace-nowrap max-[359px]:sr-only">
-            <span className="block text-[0.95rem] font-bold text-ink-strong">Office Mate</span>
-            <span className="block text-xs text-ink-muted">by First Mate</span>
+          <span className="text-[0.95rem] leading-tight font-bold whitespace-nowrap text-ink-strong max-[359px]:sr-only">
+            Office Mate
           </span>
         </Link>
         <nav aria-label="Main" className="flex items-center gap-1">

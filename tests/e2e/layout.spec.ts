@@ -151,7 +151,7 @@ test("buttons show a pointer cursor; disabled ones don't", async ({ page, db }) 
   expect(await cursor("Clock In")).not.toBe("pointer"); // disabled until the office is set up
 });
 
-test("route changes fade out then in over 0.6 s", async ({ page, browserName }) => {
+test("route changes fade out then in over 0.4 s", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "view transition pseudo-elements are inspected in Chromium");
   // Record the animations of every view transition the page starts.
   await page.addInitScript(() => {
@@ -177,7 +177,7 @@ test("route changes fade out then in over 0.6 s", async ({ page, browserName }) 
   await page.waitForURL(/login\/admin/);
   await settle(page);
   const animations = await page.evaluate(() => (window as unknown as { __vt: string[] }).__vt);
-  expect(animations).toEqual(expect.arrayContaining(["fade-out 300ms +0ms", "fade-in 300ms +300ms"]));
+  expect(animations).toEqual(expect.arrayContaining(["fade-out 200ms +0ms", "fade-in 200ms +200ms"]));
   // The browser's default whole-page cross-fade is switched off.
   expect(animations.some((a) => a.startsWith("-ua-view-transition"))).toBe(false);
 });

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LoaderCircle, LogOut } from "lucide-react";
 import { iconButtonClass } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
@@ -12,18 +12,25 @@ export function SignOutButton({ email }: { email: string }) {
   return (
     <button
       type="button"
-      disabled={pending}
+      // aria-disabled (not disabled) so the spinner isn't faded out while signing out.
+      aria-disabled={pending || undefined}
+      aria-busy={pending || undefined}
       onClick={async () => {
+        if (pending) return;
         setPending(true);
         await authClient.signOut().catch(() => undefined);
         router.replace("/login");
         router.refresh();
       }}
-      title={`Sign out (${email})`}
+      title={pending ? "Signing out…" : `Sign out (${email})`}
       aria-label={`Sign out ${email}`}
       className={iconButtonClass}
     >
-      <LogOut aria-hidden className="size-5" />
+      {pending ? (
+        <LoaderCircle aria-hidden className="size-5 animate-spin" />
+      ) : (
+        <LogOut aria-hidden className="size-5" />
+      )}
     </button>
   );
 }

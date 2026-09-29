@@ -57,7 +57,7 @@ Icon-only controls carry `aria-label` and `title`.
 
 ## Motion
 
-- Route change: fade-through — old page 300ms out, then new page 300ms in (0.6 s; React
+- Route change: fade-through — old page 200ms out, then new page 200ms in (0.4 s; React
   `<ViewTransition>`, class `page-fade`, wrapping each page's outermost element). The header is anchored (`view-transition-name: app-header`).
 - Components: colour/background/border/opacity transitions 150–200ms; status panels rise in 200ms;
   pressed buttons scale to 98.5%.
