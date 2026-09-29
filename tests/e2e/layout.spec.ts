@@ -135,3 +135,46 @@ test("PWA manifest is valid and installable", async ({ request }) => {
   expect(source).toContain('request.mode !== "navigate"');
   expect(source).not.toMatch(/addEventListener\("sync"|"POST"|cache\.put/);
 });
+
+test("buttons show a pointer cursor; disabled ones don't", async ({ page, db }) => {
+  const cursor = (name: string | RegExp) =>
+    page.getByRole("button", { name }).evaluate((el) => getComputedStyle(el).cursor);
+  await page.goto("/login");
+  expect(await cursor("Continue with Google")).toBe("pointer");
+
+  await configureOffice(db, { configured: false });
+  await signInAs(page, db, await newMember(db));
+  expect(await cursor(/Sign out/)).toBe("pointer");
+  expect(await cursor("Clock In")).not.toBe("pointer"); // disabled until the office is set up
+});
+
+test("route changes fade out then in over 0.6 s", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "view transition pseudo-elements are inspected in Chromium");
+  // Record the animations of every view transition the page starts.
+  await page.addInitScript(() => {
+    const w = window as unknown as { __vt: string[] };
+    w.__vt = [];
+    const start = document.startViewTransition?.bind(document);
+    if (!start) return;
+    document.startViewTransition = ((arg: ViewTransitionUpdateCallback) => {
+      const transition = start(arg);
+      transition.ready.then(() => {
+        for (const a of document.getAnimations()) {
+          const effect = a.effect as KeyframeEffect | null;
+          if (!effect?.pseudoElement) continue;
+          const { duration, delay } = effect.getTiming();
+          w.__vt.push(`${(a as CSSAnimation).animationName} ${duration}ms +${delay}ms`);
+        }
+      });
+      return transition;
+    }) as typeof document.startViewTransition;
+  });
+  await page.goto("/login");
+  await page.getByRole("link", { name: "Admin sign in" }).click();
+  await page.waitForURL(/login\/admin/);
+  await settle(page);
+  const animations = await page.evaluate(() => (window as unknown as { __vt: string[] }).__vt);
+  expect(animations).toEqual(expect.arrayContaining(["fade-out 300ms +0ms", "fade-in 300ms +300ms"]));
+  // The browser's default whole-page cross-fade is switched off.
+  expect(animations.some((a) => a.startsWith("-ua-view-transition"))).toBe(false);
+});

@@ -8,6 +8,7 @@ import {
   settle,
   adminSignIn,
   ADMIN_TEST_PASSWORD,
+  E2E_ORIGIN,
 } from "./fixtures";
 
 test.beforeEach(async ({ page, db }) => {
@@ -97,7 +98,7 @@ test("QR page shows one static code for the Attendance URL and prints cleanly", 
 }, testInfo) => {
   await page.getByRole("link", { name: "Attendance QR code" }).click();
   await expect(page.getByRole("heading", { name: "Office QR code" })).toBeVisible();
-  await expect(page.getByText("http://localhost:3000/attendance?source=qr")).toBeVisible();
+  await expect(page.getByText(`${E2E_ORIGIN}/attendance?source=qr`)).toBeVisible();
   await expect(
     page.locator("svg").filter({
       has: page.locator("title", { hasText: "Attendance QR code" }),

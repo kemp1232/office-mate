@@ -7,10 +7,11 @@ import {
   signInAs,
   startGoogleSignIn,
   test,
+  E2E_ORIGIN,
 } from "./fixtures";
 import { createUser } from "../support/db";
 
-const origin = { origin: "http://localhost:3000" };
+const origin = { origin: E2E_ORIGIN };
 
 test.describe("Team Member sign-in (Google Workspace SSO)", () => {
   test("the login page offers Google first, Admin sign-in second, and no password form", async ({ page }) => {
@@ -119,8 +120,8 @@ test.describe("authorisation", () => {
     await signInAs(page, db, member);
     await expect(page).toHaveURL(/\/attendance$/);
     await context.addCookies([
-      { name: "role", value: "admin", url: "http://localhost:3000" },
-      { name: "isAdmin", value: "true", url: "http://localhost:3000" },
+      { name: "role", value: "admin", url: E2E_ORIGIN },
+      { name: "isAdmin", value: "true", url: E2E_ORIGIN },
     ]);
     await page.goto("/admin/settings?role=admin");
     await expect(page).toHaveURL(/\/attendance$/);

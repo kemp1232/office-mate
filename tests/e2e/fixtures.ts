@@ -1,5 +1,6 @@
 import { test as base, expect, type Page, type TestInfo } from "@playwright/test";
 import type pg from "pg";
+import { E2E_ORIGIN } from "../support/env";
 import {
   ADMIN_TEST_PASSWORD,
   adminPool,
@@ -12,18 +13,17 @@ import {
   setSettings,
 } from "../support/db";
 
-export { expect };
+export { expect, E2E_ORIGIN };
 export { ADMIN_TEST_PASSWORD, adminUser, DEG_PER_M, OFFICE, officeOffset };
 
-export type GeoMode =
-  | {
-      mode: "ok";
-      latitude: number;
-      longitude: number;
-      accuracy: number;
-      delayMs?: number;
-    }
+export type GeoReading =
+  | { mode: "ok"; latitude: number; longitude: number; accuracy: number; delayMs?: number }
   | { mode: "error"; code: 1 | 2 | 3; delayMs?: number };
+
+export type GeoMode =
+  | GeoReading
+  /** Successive readings for successive calls (the last one repeats), e.g. a GPS warming up. */
+  | { mode: "sequence"; readings: GeoReading[] };
 
 type Fixtures = { db: pg.Pool; freshRateLimits: void };
 
@@ -72,7 +72,11 @@ export async function installGeoStub(page: Page, initial: GeoMode) {
     const stub = {
       getCurrentPosition(ok: PositionCallback, fail?: PositionErrorCallback | null) {
         w.__geoCalls += 1;
-        const g = w.__geo;
+        const current = w.__geo;
+        const g =
+          current.mode === "sequence"
+            ? current.readings[Math.min(w.__geoCalls - 1, current.readings.length - 1)]
+            : current;
         setTimeout(() => {
           if (g.mode === "ok") {
             ok({
@@ -120,7 +124,7 @@ export async function geoCalls(page: Page) {
   });
 }
 
-export const inside = (metres = 20, accuracy = 12): GeoMode => ({
+export const inside = (metres = 20, accuracy = 12): GeoReading => ({
   mode: "ok",
   latitude: officeOffset(metres),
   longitude: OFFICE.longitude,
@@ -134,7 +138,7 @@ export async function newMember(db: pg.Pool, name = "Jane Doe") {
 /** Signs a Team Member in (as if Google SSO had just completed) and opens `path`. */
 export async function signInAs(page: Page, db: pg.Pool, user: { id: string }, path = "/attendance") {
   const cookie = await sessionCookieFor(db, user.id);
-  await page.context().addCookies([{ ...cookie, url: new URL(path, "http://localhost:3000").origin }]);
+  await page.context().addCookies([{ ...cookie, url: E2E_ORIGIN }]);
   await page.goto(path);
 }
 
@@ -156,7 +160,7 @@ export async function startGoogleSignIn(page: Page, next: string) {
   await expect.poll(() => authorize?.hostname).toBe("accounts.google.com");
   const params = authorize!.searchParams;
   expect(params.get("hd")).toBe("firstmate.tech");
-  expect(params.get("redirect_uri")).toBe("http://localhost:3000/api/auth/callback/google");
+  expect(params.get("redirect_uri")).toBe(`${E2E_ORIGIN}/api/auth/callback/google`);
   expect(params.get("response_type")).toBe("code");
   expect(params.get("prompt")).toBe("select_account");
   expect(params.get("scope")).toContain("email");

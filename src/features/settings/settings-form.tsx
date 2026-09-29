@@ -8,7 +8,7 @@ import { Button, LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { StatusPanel } from "@/components/ui/status-panel";
-import { requestCurrentPosition } from "@/features/attendance/geolocation";
+import { requestBestPosition } from "@/features/attendance/geolocation";
 import { saveSettingsAction } from "./actions";
 import type { LatLng } from "./office-map";
 import { ACCURACY_LIMITS, RADIUS_LIMITS, type AdminSettings, type SettingsFieldErrors } from "./schema";
@@ -64,7 +64,8 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
 
   async function useMyLocation() {
     setLocating(true);
-    const result = await requestCurrentPosition();
+    // A few readings so a just-woken GPS can settle; the Admin still fine-tunes the pin by hand.
+    const result = await requestBestPosition({ targetAccuracyM: 20 });
     setLocating(false);
     if (!result.ok) {
       setNotice({

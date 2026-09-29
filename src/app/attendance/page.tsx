@@ -19,10 +19,11 @@ export default async function AttendancePage({
   if (!state) throw new Error("Attendance state unavailable");
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppHeader viewer={viewer} current="attendance" />
-      <main className="flex flex-1 flex-col px-gutter pb-safe">
-        <PageTransition>
+    // Outermost element, so React animates the whole page in/out on navigation.
+    <PageTransition>
+      <div className="flex min-h-dvh flex-col">
+        <AppHeader viewer={viewer} current="attendance" />
+        <main className="flex flex-1 flex-col px-gutter pb-safe">
           <AttendanceScreen
             initialState={state}
             source={isQr ? "QR" : "DIRECT"}
@@ -30,8 +31,8 @@ export default async function AttendancePage({
             isAdmin={viewer.role === "admin"}
             serverNow={new Date().toISOString()}
           />
-        </PageTransition>
-      </main>
-    </div>
+        </main>
+      </div>
+    </PageTransition>
   );
 }

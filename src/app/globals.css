@@ -61,7 +61,7 @@
   /* Motion */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --duration-base: 200ms;
-  --duration-page: 200ms;
+  --duration-page: 300ms; /* per phase: 300 ms out + 300 ms in = 0.6 s route change */
 
   /* Layout */
   --container-attendance: 27.5rem; /* 440px focused phone column */
@@ -120,11 +120,24 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
+
+  /* Tailwind's reset gives buttons the default arrow; every actionable button gets the hand. */
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
 }
 
 /* ---------- Page fade-through (React <ViewTransition> on each page) ---------- */
 ::view-transition {
   pointer-events: none;
+}
+
+/* Only our page fade-through animates; skip the browser's default whole-page cross-fade. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
 }
 
 ::view-transition-old(.page-fade) {

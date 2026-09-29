@@ -20,7 +20,8 @@ export type AttemptError =
 
 export type Phase =
   | { name: "idle" }
-  | { name: "locating"; action: AttendanceAction }
+  /** `accuracyM`: best reading so far while the phone improves its fix. */
+  | { name: "locating"; action: AttendanceAction; accuracyM?: number }
   | { name: "verifying"; action: AttendanceAction; accuracyM: number }
   | { name: "success"; action: AttendanceAction; accuracyM: number }
   | { name: "error"; action: AttendanceAction; error: AttemptError }
@@ -34,6 +35,7 @@ export type ScreenState = {
 
 export type ScreenEvent =
   | { type: "START"; action: AttendanceAction }
+  | { type: "LOCATING_PROGRESS"; accuracyM: number }
   | { type: "LOCATED"; accuracyM: number }
   | { type: "GEO_FAILED"; kind: GeoErrorKind }
   | { type: "OFFLINE"; unconfirmed?: boolean }
@@ -62,6 +64,9 @@ export function screenReducer(state: ScreenState, event: ScreenEvent): ScreenSta
       // other than the one the server says is next.
       if (!canStart(state, event.action)) return state;
       return { ...state, phase: { name: "locating", action: event.action } };
+    case "LOCATING_PROGRESS":
+      if (phase.name !== "locating") return state;
+      return { ...state, phase: { ...phase, accuracyM: event.accuracyM } };
     case "LOCATED":
       if (phase.name !== "locating") return state;
       return { ...state, phase: { name: "verifying", action: phase.action, accuracyM: event.accuracyM } };

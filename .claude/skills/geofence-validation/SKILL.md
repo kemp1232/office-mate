@@ -8,8 +8,10 @@ description: Rules for any location / geofence work — when location may be req
 ## When location is requested
 
 - ONLY inside the Clock In / Clock Out tap handler (and the Admin's explicit "Use my location" button).
-- Exactly one `navigator.geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 })`
-  per tap (`features/attendance/geolocation.ts`).
+- One location **attempt** per tap: `requestBestPosition` (`features/attendance/geolocation.ts`) takes up
+  to 3 sequential `getCurrentPosition({ enableHighAccuracy: true, maximumAge: 0 })` readings within ~20 s,
+  stops as soon as one meets the accuracy threshold, and returns the best. This is so a phone whose GPS
+  just woke up (rough first fix / timeout) succeeds on one tap. Permission denied is never retried.
 - Never `watchPosition`, never on page load, never polling, never background, never in the service worker.
 - Never log coordinates; never send them to analytics. They are stored only in the attendance event.
 

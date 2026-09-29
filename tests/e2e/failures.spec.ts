@@ -195,3 +195,26 @@ test("returning to the app re-reads state (e.g. PWA resumed after another device
   await expect(page.getByRole("button", { name: "Clock Out" })).toBeVisible();
   expect((await geoCalls(page)).current).toBe(0);
 });
+
+test("a phone whose GPS just woke up still clocks in on one tap", async ({ page, db }) => {
+  // First fix is a rough network estimate (180 m), the next is GPS-accurate.
+  const member = await ready(page, db, {
+    mode: "sequence",
+    readings: [
+      { ...inside(20, 180), delayMs: 500 },
+      { ...inside(20, 14), delayMs: 500 },
+    ],
+  });
+  await page.getByRole("button", { name: "Clock In" }).click();
+  await expect(page.getByText("Improving accuracy · 180m")).toBeVisible();
+  await expect(page.getByText("You're at the office · Verified · 14m accuracy")).toBeVisible();
+  expect(await geoCalls(page)).toEqual({ current: 2, watch: 0 });
+  expect(await eventsFor(db, member.id)).toHaveLength(1);
+});
+
+test("location permission denied is not retried behind the user's back", async ({ page, db }) => {
+  await ready(page, db, { mode: "error", code: 1 });
+  await page.getByRole("button", { name: "Clock In" }).click();
+  await expect(page.getByText("Location access is required to clock in")).toBeVisible();
+  expect((await geoCalls(page)).current).toBe(1);
+});

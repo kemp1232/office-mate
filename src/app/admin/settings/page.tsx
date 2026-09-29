@@ -14,10 +14,11 @@ export default async function AdminSettingsPage() {
   if (!settings) throw new Error("Admin settings unavailable");
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppHeader viewer={viewer} current="settings" />
-      <main className="flex-1 px-gutter lg:pb-10">
-        <PageTransition>
+    // Outermost element, so React animates the whole page in/out on navigation.
+    <PageTransition>
+      <div className="flex min-h-dvh flex-col">
+        <AppHeader viewer={viewer} current="settings" />
+        <main className="flex-1 px-gutter lg:pb-10">
           <div className="mx-auto flex max-w-(--container-admin) flex-col gap-5 pt-5 sm:pt-8">
             <div>
               <Eyebrow>Admin</Eyebrow>
@@ -28,8 +29,8 @@ export default async function AdminSettingsPage() {
             </div>
             <SettingsForm initial={settings} />
           </div>
-        </PageTransition>
-      </main>
-    </div>
+        </main>
+      </div>
+    </PageTransition>
   );
 }

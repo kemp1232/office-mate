@@ -18,8 +18,9 @@ export function AuthShell({
   footer?: ReactNode;
 }) {
   return (
-    <main className="flex min-h-dvh flex-col pt-safe px-gutter pb-safe">
-      <PageTransition>
+    // Outermost element, so React animates the whole page in/out on navigation.
+    <PageTransition>
+      <main className="flex min-h-dvh flex-col pt-safe px-gutter pb-safe">
         <div className="mx-auto flex w-full max-w-(--container-attendance) flex-1 flex-col justify-center gap-6 py-8">
           <div className="flex items-center gap-3">
             <Image src="/brand/mark.svg" alt="" width={44} height={44} priority />
@@ -36,7 +37,7 @@ export function AuthShell({
           </section>
           {footer ? <div className="text-center text-sm text-ink-muted">{footer}</div> : null}
         </div>
-      </PageTransition>
-    </main>
+      </main>
+    </PageTransition>
   );
 }

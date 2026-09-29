@@ -26,10 +26,37 @@ function formatMeters(m: number): string {
   return `${Math.round(m).toLocaleString("en-US")}m`;
 }
 
-export const LOCATING_MESSAGE: StatusMessage = {
-  tone: "progress",
-  title: "Checking your location…",
-  retry: false,
+export type Platform = "ios" | "android" | "other";
+
+/** Which phone OS to tailor "turn on Location" help for. */
+export function detectPlatform(
+  userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent,
+): Platform {
+  if (/iPhone|iPad|iPod/.test(userAgent)) return "ios";
+  if (/Android/.test(userAgent)) return "android";
+  return "other";
+}
+
+export function locatingMessage(bestAccuracyM?: number): StatusMessage {
+  return {
+    tone: "progress",
+    title: "Checking your location…",
+    detail: bestAccuracyM === undefined ? undefined : `Improving accuracy · ${formatMeters(bestAccuracyM)}`,
+    retry: false,
+  };
+}
+
+const PERMISSION_HELP: Record<Platform, string> = {
+  ios: "Turn on Settings › Privacy & Security › Location Services, allow it for your browser, then try again.",
+  android:
+    "Turn on Location (swipe down from the top), allow it for this site via the icon beside the address, then try again.",
+  other: "Allow location for this site in your browser settings, then try again.",
+};
+
+const UNAVAILABLE_HELP: Record<Platform, string> = {
+  ios: "Make sure Location Services is on (Settings › Privacy & Security), then try again near a window.",
+  android: "Make sure Location is on (swipe down from the top), then try again near a window.",
+  other: "Check that location services are on, then try again.",
 };
 
 export function verifyingMessage(accuracyM: number): StatusMessage {
@@ -79,13 +106,17 @@ export function syncedMessage(attempted: AttendanceAction, state: AttendanceStat
   };
 }
 
-export function errorMessage(action: AttendanceAction, error: AttemptError): StatusMessage {
+export function errorMessage(
+  action: AttendanceAction,
+  error: AttemptError,
+  platform: Platform = "other",
+): StatusMessage {
   switch (error.kind) {
     case "PERMISSION_DENIED":
       return {
         tone: "danger",
         title: `Location access is required to ${verb(action)}`,
-        detail: "Allow location for this site in your browser settings, then try again.",
+        detail: PERMISSION_HELP[platform],
         retry: true,
       };
     case "POSITION_UNAVAILABLE":
@@ -93,7 +124,7 @@ export function errorMessage(action: AttendanceAction, error: AttemptError): Sta
       return {
         tone: "warning",
         title: "Couldn't get your location",
-        detail: "Check that location services are on, then try again.",
+        detail: UNAVAILABLE_HELP[platform],
         retry: true,
       };
     case "UNSUPPORTED":

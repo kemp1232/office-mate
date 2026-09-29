@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
-import { config } from "dotenv";
+import { E2E_ORIGIN, E2E_PORT, loadTestEnv } from "./tests/support/env";
 
-config({ path: ".env.local", quiet: true });
+loadTestEnv();
 
 // An editor installed as a Snap (e.g. VS Code) leaks GTK/GIO module paths into child processes,
 // which crashes WebKit's network process (glibc symbol mismatch). Browsers don't need them.
@@ -19,8 +19,8 @@ if (process.env.SNAP) {
   }
 }
 
-const PORT = 3000;
-const baseURL = `http://localhost:${PORT}`;
+const PORT = E2E_PORT;
+const baseURL = E2E_ORIGIN;
 
 /**
  * E2E runs against a production build (`next build && next start`) and local Supabase.
@@ -59,15 +59,19 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run build && npm run start",
+    command: `npm run build && npx next start -p ${PORT}`,
     url: `${baseURL}/login`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    // Placeholder Google client so the sign-in redirect can be asserted (Google itself is stubbed).
+    // Real env vars win over the .env.local that `next` also reads, so the server uses local Supabase.
     env: {
+      DATABASE_URL: process.env.DATABASE_URL!,
+      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET!,
       BETTER_AUTH_URL: baseURL,
-      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "e2e-client.apps.googleusercontent.com",
-      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "e2e-secret",
+      ATTENDANCE_TIMEZONE: process.env.ATTENDANCE_TIMEZONE!,
+      // Placeholder Google client so the sign-in redirect can be asserted (Google itself is stubbed).
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID!,
+      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
 });

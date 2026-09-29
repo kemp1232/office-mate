@@ -112,7 +112,7 @@ Constraints on `attendance_events`:
 - Status messages appear above the button without moving it.
 - Short landscape switches to two columns.
 - Layout details: safe-area utilities, `100dvh`, 44px minimum touch targets, and Satoshi with First Mate tokens.
-- Page transitions are a 200 ms fade-through using React `<ViewTransition>`, respecting reduced motion.
+- Page transitions are a 0.6 s fade-through (300 ms out, 300 ms in) using React `<ViewTransition>`, respecting reduced motion.
 - Admin Settings has a map, fields and a sticky save bar on phones, and becomes two columns on desktop.
 - The QR page has a print layout.
 

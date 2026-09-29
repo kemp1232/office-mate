@@ -16,11 +16,12 @@ import { StatusPanel } from "@/components/ui/status-panel";
 import { loginPathFor } from "@/features/auth/safe-next";
 import { clockAction, refreshStateAction } from "./actions";
 import { formatAttendanceDay, formatClockTime, formatElapsed, orgDate } from "./format";
-import { requestCurrentPosition } from "./geolocation";
+import { requestBestPosition } from "./geolocation";
 import {
   actionLabel,
   errorMessage,
-  LOCATING_MESSAGE,
+  detectPlatform,
+  locatingMessage,
   successMessage,
   syncedMessage,
   verifyingMessage,
@@ -97,7 +98,12 @@ export function AttendanceScreen({ initialState, source, firstName, isAdmin, ser
         return;
       }
       // The ONLY place location is requested: once, in response to this tap.
-      const located = await requestCurrentPosition();
+      // One location attempt for this tap: up to 3 readings (~20 s max) so a phone whose GPS has
+      // just woken up can reach the accuracy threshold instead of failing on a rough first fix.
+      const located = await requestBestPosition({
+        targetAccuracyM: latest.current.attendance.accuracy_threshold_m,
+        onReading: (accuracyM) => dispatch({ type: "LOCATING_PROGRESS", accuracyM }),
+      });
       if (!located.ok) {
         dispatch({ type: "GEO_FAILED", kind: located.kind });
         return;
@@ -224,7 +230,7 @@ function phaseMessage({ phase, attendance }: ScreenState): StatusMessage | null 
     case "idle":
       return null;
     case "locating":
-      return LOCATING_MESSAGE;
+      return locatingMessage(phase.accuracyM);
     case "verifying":
       return verifyingMessage(phase.accuracyM);
     case "success":
@@ -232,7 +238,7 @@ function phaseMessage({ phase, attendance }: ScreenState): StatusMessage | null 
     case "synced":
       return syncedMessage(phase.action, attendance);
     case "error":
-      return errorMessage(phase.action, phase.error);
+      return errorMessage(phase.action, phase.error, detectPlatform());
   }
 }
 

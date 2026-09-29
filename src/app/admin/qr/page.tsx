@@ -12,10 +12,11 @@ export const metadata: Metadata = { title: "Attendance QR code" };
 export default async function AdminQrPage() {
   const viewer = await requireAdminPage("/admin/qr");
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppHeader viewer={viewer} current="qr" />
-      <main className="flex-1 px-gutter pb-safe print:px-0">
-        <PageTransition>
+    // Outermost element, so React animates the whole page in/out on navigation.
+    <PageTransition>
+      <div className="flex min-h-dvh flex-col">
+        <AppHeader viewer={viewer} current="qr" />
+        <main className="flex-1 px-gutter pb-safe print:px-0">
           <div className="mx-auto flex max-w-(--container-admin) flex-col gap-5 py-5 sm:py-8 print:py-0">
             <div className="print:hidden">
               <Eyebrow>Admin</Eyebrow>
@@ -27,8 +28,8 @@ export default async function AdminQrPage() {
             </div>
             <QrPoster url={attendanceQrUrl(env().BETTER_AUTH_URL)} />
           </div>
-        </PageTransition>
-      </main>
-    </div>
+        </main>
+      </div>
+    </PageTransition>
   );
 }

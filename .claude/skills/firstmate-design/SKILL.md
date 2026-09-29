@@ -33,13 +33,14 @@ Reference: https://www.firstmate.tech/ (Next.js + Tailwind v4 site) and the mock
 
 ## Motion
 
-- Page fade-through: `<PageTransition>` (React `<ViewTransition>`), old page 200ms out then new 200ms in.
-  Wrap page content, not layouts.
+- Page fade-through: `<PageTransition>` (React `<ViewTransition>`), old page 300ms out then new 300ms in
+  (0.6 s, `--duration-page`). It must be the page's OUTERMOST element (React only animates enter/exit
+  when no newly inserted DOM node sits above it); never in a layout. The browser's root cross-fade is off.
 - Component transitions 150–200ms `ease-standard` on colour/background/border/opacity.
 - `prefers-reduced-motion` disables animations globally (globals.css). Don't over-animate.
 
 ## Accessibility
 
-Semantic elements, visible labels, `Field` wires hints/errors via `aria-describedby`, status in
+Buttons get `cursor: pointer` globally (disabled ones don't). Semantic elements, visible labels, `Field` wires hints/errors via `aria-describedby`, status in
 `role="status"` live regions, state never by colour alone (icon + text), visible focus ring, AA contrast.
 `tests/e2e/layout.spec.ts` enforces overflow, 44px targets and axe (serious/critical) on every device.

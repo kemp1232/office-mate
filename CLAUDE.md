@@ -41,7 +41,8 @@ npm test | npm run test:db | npm run test:integration | npm run test:e2e
   `npm run admin:create`). No self sign-up, no email flows, no account linking. Admin allow-list:
   SQL `app.admin_emails()` = `features/auth/roles.ts` `ADMIN_EMAILS`.
 - Never trust the browser for role, event type, timestamps, distance, or pass/fail.
-- Location: `getCurrentPosition` once per explicit tap. No `watchPosition`, polling, or background use.
+- Location: one attempt per explicit tap (`requestBestPosition`: ≤3 sequential `getCurrentPosition`
+  readings within ~20 s, stopping once accurate). No `watchPosition`, polling, or background use.
   Don't log coordinates.
 - Attendance rows are write-once: no update/delete APIs, UI, or corrections.
 - No offline attendance, no queued/replayed mutations; the service worker handles GET navigations only.

@@ -1,3 +1,3 @@
-import { config } from "dotenv";
+import { loadTestEnv } from "../support/env";
 
-config({ path: ".env.local", quiet: true });
+loadTestEnv();
