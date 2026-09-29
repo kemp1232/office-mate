@@ -10,6 +10,7 @@ import { Field } from "@/components/ui/field";
 import { StatusPanel } from "@/components/ui/status-panel";
 import { requestBestPosition } from "@/features/attendance/geolocation";
 import { saveSettingsAction } from "./actions";
+import { AddressSearch } from "./address-search";
 import type { LatLng } from "./office-map";
 import { ACCURACY_LIMITS, RADIUS_LIMITS, type AdminSettings, type SettingsFieldErrors } from "./schema";
 
@@ -31,7 +32,8 @@ const SAVE_ERROR_TITLE = {
   SERVER_ERROR: "Couldn't save settings",
 } as const;
 
-export function SettingsForm({ initial }: { initial: AdminSettings }) {
+/** `header`: the page title block; on desktop the Save button sits beside it. */
+export function SettingsForm({ initial, header }: { initial: AdminSettings; header: React.ReactNode }) {
   const [saved, setSaved] = useState(initial);
   const [pin, setPin] = useState<LatLng | null>(
     initial.officeLatitude !== null && initial.officeLongitude !== null
@@ -110,8 +112,40 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
     setPending(false);
   }
 
+  const saveButton = (className = "") => (
+    <Button
+      type="submit"
+      aria-disabled={pending || !dirty || undefined}
+      icon={<Save aria-hidden className="size-5" />}
+      className={className}
+    >
+      {pending ? "Saving…" : "Save settings"}
+    </Button>
+  );
+  const saveStatus = (className = "") => (
+    <div role="status" aria-live="polite" className={`text-sm ${className}`}>
+      {notice ? (
+        <span className={`font-bold ${NOTICE_TEXT[notice.tone]}`}>
+          {notice.title}
+          {notice.detail ? <span className="block font-medium text-ink-muted">{notice.detail}</span> : null}
+        </span>
+      ) : !dirty ? (
+        <span className="text-ink-muted">No changes to save</span>
+      ) : null}
+    </div>
+  );
+
   return (
     <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+      {/* Desktop: Save beside the page title. Phones/tablets use the sticky bar at the bottom. */}
+      <div className="flex items-end justify-between gap-8">
+        <div className="min-w-0">{header}</div>
+        <div className="hidden shrink-0 items-center gap-4 lg:flex">
+          {saveStatus("text-right")}
+          {saveButton()}
+        </div>
+      </div>
+
       {!pin ? (
         <StatusPanel
           tone="warning"
@@ -122,23 +156,40 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start">
         <Card aria-labelledby="office-heading" className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 id="office-heading" className="text-lg">
-                Office location
-              </h2>
-              <p className="text-sm text-ink-muted">Tap the map to drop the pin, then drag to adjust.</p>
-            </div>
+          {/* "Use my location" stays beside the title; the hint wraps beside it, or below on narrow phones. */}
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1">
+            <h2 id="office-heading" className="text-lg">
+              Office location
+            </h2>
             <Button
               variant="secondary"
               onClick={useMyLocation}
               disabled={locating}
               icon={<LocateFixed aria-hidden className="size-5" />}
               size="sm"
+              aria-label={locating ? "Locating…" : "Use my location"}
+              className="sm:row-span-2"
             >
-              {locating ? "Locating…" : "Use my location"}
+              {locating ? (
+                "Locating…"
+              ) : (
+                <>
+                  <span className="sm:hidden">My location</span>
+                  <span className="hidden sm:inline">Use my location</span>
+                </>
+              )}
             </Button>
+            <p className="col-span-2 text-xs text-ink-muted sm:col-span-1 sm:self-start">
+              Search for the address, or tap the map to drop the pin. Drag it to adjust.
+            </p>
           </div>
+          <AddressSearch
+            onPick={(place) => {
+              const next = { latitude: place.latitude, longitude: place.longitude };
+              setPin(next);
+              mapRef.current?.flyTo({ center: [next.longitude, next.latitude], zoom: 17 });
+            }}
+          />
           <div className="relative h-(--height-map) overflow-hidden rounded-panel border border-stroke lg:h-(--height-map-lg)">
             <OfficeMap value={pin} radiusM={previewRadius} onChange={setPin} mapRef={mapRef} />
           </div>
@@ -214,7 +265,7 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
               error={errors.reportUrl}
             />
             <LinkButton
-              variant="link"
+              variant="secondary"
               size="sm"
               href={saved.reportUrl}
               target="_blank"
@@ -228,29 +279,11 @@ export function SettingsForm({ initial }: { initial: AdminSettings }) {
         </div>
       </div>
 
-      {/* Sticky (in flow), safe-area-aware save bar on phones; inline on desktop. */}
-      <div className="sticky bottom-0 z-10 mx-[calc(-1*var(--gutter))] border-t border-stroke bg-surface/95 px-gutter pb-safe backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-        <div className="mx-auto flex max-w-(--container-admin) flex-col gap-2 py-3 lg:flex-row-reverse lg:items-center lg:justify-start lg:gap-4 lg:py-0">
-          <Button
-            type="submit"
-            aria-disabled={pending || !dirty || undefined}
-            icon={<Save aria-hidden className="size-5" />}
-            className="w-full lg:w-auto"
-          >
-            {pending ? "Saving…" : "Save settings"}
-          </Button>
-          <div role="status" aria-live="polite" className="text-center text-sm lg:text-left">
-            {notice ? (
-              <span className={`font-bold ${NOTICE_TEXT[notice.tone]}`}>
-                {notice.title}
-                {notice.detail ? (
-                  <span className="block font-medium text-ink-muted">{notice.detail}</span>
-                ) : null}
-              </span>
-            ) : !dirty ? (
-              <span className="text-ink-muted">No changes to save</span>
-            ) : null}
-          </div>
+      {/* Phones/tablets: sticky, safe-area-aware save bar always within reach. */}
+      <div className="sticky bottom-0 z-10 mx-[calc(-1*var(--gutter))] border-t border-stroke bg-surface/95 px-gutter pb-safe backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-(--container-admin) flex-col gap-2 py-3">
+          {saveButton("w-full")}
+          {saveStatus("text-center")}
         </div>
       </div>
     </form>

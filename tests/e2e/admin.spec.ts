@@ -40,9 +40,10 @@ test("first run: setup incomplete → drop pin on map → save", async ({ page, 
   await page.getByLabel("Geofence radius").fill("250");
   await page.getByLabel("GPS accuracy threshold").fill("300");
   const save = page.getByRole("button", { name: "Save settings" });
-  await expect(save).toBeInViewport();
+  // Phones: pinned to the bottom, so always on screen. Desktop: at the top beside the title.
+  if (!testInfo.project.name.startsWith("desktop")) await expect(save).toBeInViewport();
   await save.click();
-  await expect(page.getByText("Settings saved")).toBeVisible();
+  await expect(page.getByText("Settings saved").filter({ visible: true })).toBeVisible();
   await settle(page);
   await snap(page, testInfo, "settings-saved", true);
 
@@ -171,4 +172,36 @@ test.describe("attendance log", () => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/admin\/attendance/);
   });
+});
+
+test("search an address to place the office pin", async ({ page, db }) => {
+  await configureOffice(db, { configured: false });
+  await page.reload();
+  // Stand-in for OpenStreetMap Nominatim (the real service is never called from tests).
+  await page.route("https://nominatim.openstreetmap.org/search**", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify([
+        {
+          display_name: "Ayala Triangle Gardens, Makati, Metro Manila, Philippines",
+          lat: "14.5566",
+          lon: "121.0233",
+        },
+      ]),
+    }),
+  );
+  const box = page.getByLabel("Search address");
+  await box.fill("Ayala Triangle, Makati");
+  await box.press("Enter"); // searches; must not submit the settings form
+  const result = page.getByRole("button", { name: /Ayala Triangle Gardens, Makati/ });
+  await expect(result).toBeVisible();
+  await expect(page.getByText("Settings saved").filter({ visible: true })).toHaveCount(0);
+
+  await result.click();
+  await expect(page.getByText("14.556600, 121.023300")).toBeVisible();
+  await expect(page.getByText(/Pin placed\. Drag it to the exact spot/)).toBeVisible();
+  await page.getByRole("button", { name: "Save settings" }).click();
+  await expect(page.getByText("Settings saved").filter({ visible: true })).toBeVisible();
+  const { rows } = await db.query("select office_latitude, office_longitude from app.attendance_settings");
+  expect(rows[0]).toEqual({ office_latitude: 14.5566, office_longitude: 121.0233 });
 });

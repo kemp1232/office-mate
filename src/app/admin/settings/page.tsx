@@ -25,14 +25,18 @@ export default async function AdminSettingsPage() {
         <AppHeader viewer={viewer} current="settings" />
         <main className="flex-1 px-gutter lg:pb-10">
           <div className="mx-auto flex max-w-(--container-admin) flex-col gap-5 pt-5 sm:pt-8">
-            <div>
-              <Eyebrow>Admin</Eyebrow>
-              <h1 className="mt-1 text-2xl tracking-tight sm:text-3xl">Attendance settings</h1>
-              <p className="mt-1 text-ink-muted">
-                One office for the whole team. Changes apply to the next Clock In or Clock Out.
-              </p>
-            </div>
-            <SettingsForm initial={settings} />
+            <SettingsForm
+              initial={settings}
+              header={
+                <>
+                  <Eyebrow>Admin</Eyebrow>
+                  <h1 className="mt-1 text-2xl tracking-tight sm:text-3xl">Attendance settings</h1>
+                  <p className="mt-1 text-ink-muted">
+                    One office for the whole team. Changes apply to the next Clock In or Clock Out.
+                  </p>
+                </>
+              }
+            />
             <SheetSyncCard initial={sheetSync} />
           </div>
         </main>

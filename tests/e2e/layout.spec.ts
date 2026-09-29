@@ -99,8 +99,11 @@ test("admin pages", async ({ page, db }, testInfo) => {
   await expect(page.locator(".maplibregl-canvas")).toBeVisible();
   await mapReady(page);
   const save = page.getByRole("button", { name: "Save settings" });
+  // Phones/tablets: pinned to the bottom of the screen. Desktop: beside the page title.
   await expect(save).toBeInViewport();
   await checkLayout(page, testInfo, "admin-settings");
+  await page.getByRole("heading", { name: "Google Sheet sync" }).scrollIntoViewIfNeeded();
+  await snap(page, testInfo, "admin-settings-sheet-sync");
   await page.goto("/admin/qr");
   await checkLayout(page, testInfo, "admin-qr");
   await page.goto("/admin/attendance");

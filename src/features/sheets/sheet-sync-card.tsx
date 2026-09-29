@@ -41,29 +41,23 @@ export function SheetSyncCard({ initial }: { initial: SheetSyncStatus }) {
 
   const ready = status.configured && status.spreadsheetConfigured;
   const healthy = ready && status.failing === 0;
+  const StatusIcon = healthy ? CircleCheckBig : CircleAlert;
 
   return (
     <Card aria-labelledby="sheet-sync-heading" className="flex flex-col gap-4">
-      <div className="flex items-start gap-3">
-        <Sheet aria-hidden className="mt-0.5 size-5 shrink-0 text-accent" />
-        <div>
-          <h2 id="sheet-sync-heading" className="text-lg">
-            Google Sheet sync
-          </h2>
-          <p className="text-sm text-ink-muted">
-            Every Clock In and Clock Out is added to the report Sheet automatically. Each office day gets its
-            own tab (for example “October 13, 2026”) with Name, Email, Time in and Time out.
-          </p>
-        </div>
-      </div>
-
-      <p className="flex items-center gap-2 text-sm font-bold" role="status" aria-live="polite">
-        {healthy ? (
-          <CircleCheckBig aria-hidden className="size-4 text-success" />
-        ) : (
-          <CircleAlert aria-hidden className="size-4 text-warning" />
-        )}
-        <span className={healthy ? "text-success" : "text-warning"}>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h2 id="sheet-sync-heading" className="flex items-center gap-2 text-lg">
+          <Sheet aria-hidden className="size-5 shrink-0 text-accent" />
+          Google Sheet sync
+        </h2>
+        <p
+          role="status"
+          aria-live="polite"
+          className={`inline-flex items-center gap-1.5 rounded-button px-3 py-1 text-sm font-bold ${
+            healthy ? "bg-success-tint text-success" : "bg-warning-tint text-warning"
+          }`}
+        >
+          <StatusIcon aria-hidden className="size-4 shrink-0" />
           {!status.configured
             ? "Not set up yet"
             : !status.spreadsheetConfigured
@@ -73,7 +67,19 @@ export function SheetSyncCard({ initial }: { initial: SheetSyncStatus }) {
                 : status.pending
                   ? `${status.pending} waiting to sync`
                   : "Up to date"}
-        </span>
+        </p>
+      </div>
+
+      <p className="text-sm text-ink-muted">
+        Every Clock In and Clock Out is added to the report Sheet automatically. Each office day gets its own
+        tab (for example “October 13, 2026”) with Name, Email, Time in and Time out.
+        {!status.configured ? (
+          <>
+            {" "}
+            Sync isn&apos;t connected yet. Clock ins are still saved, and they&apos;ll be added to the Sheet
+            once it is.
+          </>
+        ) : null}
       </p>
 
       {status.lastError && status.failing ? (
@@ -82,31 +88,26 @@ export function SheetSyncCard({ initial }: { initial: SheetSyncStatus }) {
         </p>
       ) : null}
 
-      {!status.configured ? (
-        <p className="text-sm text-ink-muted">
-          Sync isn&apos;t connected yet. Clock ins are still saved, and they&apos;ll be added to the Sheet
-          once it is.
-        </p>
-      ) : null}
-
-      <p className="text-sm text-ink-muted">
-        <strong className="text-ink">Sync now</strong> is a manual backup. You only need it if the Sheet
-        doesn&apos;t match the Attendance log.
-      </p>
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 border-t border-stroke pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+        <div className="flex min-w-0 flex-col gap-1">
+          <p className="text-sm text-ink-muted">
+            <strong className="text-ink">Sync now</strong> is a manual backup. You only need it if the Sheet
+            doesn&apos;t match the Attendance log.
+          </p>
+          <p className="text-sm font-bold text-ink empty:hidden" aria-live="polite">
+            {message}
+          </p>
+        </div>
         <Button
           variant="secondary"
           size="sm"
           onClick={syncNow}
           aria-disabled={pending || !ready || undefined}
           icon={<RefreshCw aria-hidden className={`size-4 ${pending ? "animate-spin" : ""}`} />}
+          className="shrink-0"
         >
           {pending ? "Syncing…" : "Sync now"}
         </Button>
-        <p className="text-sm text-ink-muted" aria-live="polite">
-          {message}
-        </p>
       </div>
     </Card>
   );
