@@ -53,6 +53,22 @@ test("location unavailable / timeout → retry prompt", async ({ page, db }) => 
   expect(await eventsFor(db, member.id)).toEqual([]);
 });
 
+test("browser never answers the location request → attempt ends with help, not an endless spinner", async ({
+  page,
+  db,
+}, testInfo) => {
+  await page.clock.install();
+  const member = await ready(page, db, { mode: "silent" });
+  await page.getByRole("button", { name: "Clock In" }).click();
+  await expect(page.getByText("Checking your location…")).toBeVisible();
+  await page.clock.runFor(31_000);
+  await expect(page.getByText("Your phone didn't share your location")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try Clock In again" })).toBeEnabled();
+  await snap(page, testInfo, "location-no-response");
+  expect(await geoCalls(page)).toEqual({ current: 1, watch: 0 });
+  expect(await eventsFor(db, member.id)).toEqual([]);
+});
+
 test("GPS accuracy worse than 50 m → rejected before the radius check", async ({ page, db }, testInfo) => {
   // Far away AND inaccurate: the accuracy message must win.
   const member = await ready(page, db, {

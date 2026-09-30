@@ -53,6 +53,13 @@ const PERMISSION_HELP: Record<Platform, string> = {
   other: "Allow location for this site in your browser settings, then try again.",
 };
 
+const NO_RESPONSE_HELP: Record<Platform, string> = {
+  ios: "On your iPhone, open Settings › Privacy & Security › Location Services, tap your browser (Chrome or Safari) and choose While Using the App. Then reload this page and try again.",
+  android:
+    "Make sure Location is on (swipe down from the top) and allowed for your browser, then reload this page and try again.",
+  other: "Allow location for this site in your browser settings, then reload this page and try again.",
+};
+
 const UNAVAILABLE_HELP: Record<Platform, string> = {
   ios: "Make sure Location Services is on (Settings › Privacy & Security), then try again near a window.",
   android: "Make sure Location is on (swipe down from the top), then try again near a window.",
@@ -117,6 +124,13 @@ export function errorMessage(
         tone: "danger",
         title: `Location access is required to ${verb(action)}`,
         detail: PERMISSION_HELP[platform],
+        retry: true,
+      };
+    case "NO_RESPONSE":
+      return {
+        tone: "warning",
+        title: "Your phone didn't share your location",
+        detail: NO_RESPONSE_HELP[platform],
         retry: true,
       };
     case "POSITION_UNAVAILABLE":

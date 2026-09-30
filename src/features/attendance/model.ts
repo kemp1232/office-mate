@@ -6,7 +6,9 @@ import type { AttendanceAction, AttendanceState, ClockResult } from "./types";
  * this only models the transient "checking / verifying / error" phases around one tap.
  */
 
-export type GeoErrorKind = "PERMISSION_DENIED" | "POSITION_UNAVAILABLE" | "TIMEOUT" | "UNSUPPORTED";
+/** NO_RESPONSE: the browser never answered at all (seen on iPhone when location is blocked for the app). */
+export type GeoErrorKind =
+  "PERMISSION_DENIED" | "POSITION_UNAVAILABLE" | "TIMEOUT" | "NO_RESPONSE" | "UNSUPPORTED";
 
 export type AttemptError =
   | { kind: GeoErrorKind }

@@ -76,7 +76,7 @@ describe("attendance screen reducer", () => {
     expect(screenReducer(s, { type: "START", action: "CLOCK_IN" })).toBe(s);
   });
 
-  it.each(["PERMISSION_DENIED", "POSITION_UNAVAILABLE", "TIMEOUT"] as const)(
+  it.each(["PERMISSION_DENIED", "POSITION_UNAVAILABLE", "TIMEOUT", "NO_RESPONSE"] as const)(
     "geolocation %s → retryable error",
     (kind) => {
       const s = run(

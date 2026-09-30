@@ -23,6 +23,9 @@ const OfficeMap = dynamic(() => import("./office-map"), {
   ),
 });
 
+/** "Use my location" readings less accurate than this get a "check the pin" warning. */
+const PIN_ACCURACY_WARN_M = 50;
+
 type Notice = { tone: "success" | "danger" | "warning"; title: string; detail?: string } | null;
 
 const NOTICE_TEXT = { success: "text-success", danger: "text-danger", warning: "text-warning" } as const;
@@ -80,6 +83,17 @@ export function SettingsForm({ initial, header }: { initial: AdminSettings; head
     const next = { latitude: result.position.latitude, longitude: result.position.longitude };
     setPin(next);
     mapRef.current?.flyTo({ center: [next.longitude, next.latitude], zoom: 17 });
+    // Laptops locate by Wi-Fi and can be hundreds of metres off; a wrong pin blocks every clock in.
+    const accuracyM = Math.round(result.position.accuracy);
+    setNotice(
+      accuracyM > PIN_ACCURACY_WARN_M
+        ? {
+            tone: "warning",
+            title: `Your location is only accurate to about ${accuracyM.toLocaleString("en-US")} m`,
+            detail: "Check the pin and drag it onto the office before saving.",
+          }
+        : null,
+    );
   }
 
   async function onSubmit(event: React.FormEvent) {

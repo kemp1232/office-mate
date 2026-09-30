@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { requestBestPosition } from "@/features/attendance/geolocation";
+import { NO_RESPONSE_GRACE_MS, requestBestPosition } from "@/features/attendance/geolocation";
 import { detectPlatform, errorMessage, locatingMessage } from "@/features/attendance/messages";
 
 type Reading = { accuracy: number } | { error: 1 | 2 | 3 };
@@ -94,6 +94,53 @@ describe("requestBestPosition (one attempt per tap)", () => {
     expect(calls[1].timeout).toBe(8_000); // second reading only gets the remaining budget
     expect(calls.every((c) => c.enableHighAccuracy && c.maximumAge === 0)).toBe(true);
     expect(geo.watchPosition).not.toHaveBeenCalled();
+  });
+});
+
+describe("a browser that never answers (iPhone with Location off for the app)", () => {
+  function silentGeo() {
+    const late: { ok?: PositionCallback } = {};
+    const geo = {
+      getCurrentPosition: vi.fn((ok: PositionCallback) => {
+        late.ok = ok; // never called back… until maybe much later
+      }),
+      watchPosition: vi.fn(),
+    } as unknown as Geolocation;
+    return { geo, late };
+  }
+
+  it("ends the attempt with NO_RESPONSE instead of loading forever", async () => {
+    vi.useFakeTimers();
+    try {
+      const { geo } = silentGeo();
+      const pending = requestBestPosition({ targetAccuracyM: 50 }, geo);
+      await vi.advanceTimersByTimeAsync(15_000 + NO_RESPONSE_GRACE_MS.firstReading);
+      await expect(pending).resolves.toEqual({ ok: false, kind: "NO_RESPONSE" });
+      // Retrying a silent browser just makes people wait longer: one reading, then stop.
+      expect(geo.getCurrentPosition).toHaveBeenCalledTimes(1);
+      expect(geo.watchPosition).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("ignores a callback that arrives after the deadline", async () => {
+    vi.useFakeTimers();
+    try {
+      const { geo, late } = silentGeo();
+      const pending = requestBestPosition({ targetAccuracyM: 50 }, geo);
+      await vi.advanceTimersByTimeAsync(60_000);
+      late.ok?.({ coords: { latitude: 1, longitude: 2, accuracy: 5 } } as GeolocationPosition);
+      await expect(pending).resolves.toEqual({ ok: false, kind: "NO_RESPONSE" });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("tells iPhone users where to allow location for their browser", () => {
+    const message = errorMessage("CLOCK_IN", { kind: "NO_RESPONSE" }, "ios");
+    expect(message.retry).toBe(true);
+    expect(message.detail).toMatch(/Location Services.*Chrome or Safari.*While Using the App/);
   });
 });
 

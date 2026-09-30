@@ -23,7 +23,9 @@ export type GeoReading =
 export type GeoMode =
   | GeoReading
   /** Successive readings for successive calls (the last one repeats), e.g. a GPS warming up. */
-  | { mode: "sequence"; readings: GeoReading[] };
+  | { mode: "sequence"; readings: GeoReading[] }
+  /** The browser never calls back at all (iPhone with Location off for the browser app). */
+  | { mode: "silent" };
 
 type Fixtures = { db: pg.Pool; freshRateLimits: void };
 
@@ -73,6 +75,7 @@ export async function installGeoStub(page: Page, initial: GeoMode) {
       getCurrentPosition(ok: PositionCallback, fail?: PositionErrorCallback | null) {
         w.__geoCalls += 1;
         const current = w.__geo;
+        if (current.mode === "silent") return;
         const g =
           current.mode === "sequence"
             ? current.readings[Math.min(w.__geoCalls - 1, current.readings.length - 1)]
