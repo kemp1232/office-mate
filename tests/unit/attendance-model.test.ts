@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { canStart, initialScreenState, screenReducer, type ScreenState } from "@/features/attendance/model";
-import { errorMessage, successMessage, syncedMessage } from "@/features/attendance/messages";
+import {
+  clockOutGateMessage,
+  errorMessage,
+  gatedClockOutLabel,
+  successMessage,
+  syncedMessage,
+} from "@/features/attendance/messages";
 import { clockInputSchema, type AttendanceState } from "@/features/attendance/types";
 
 const base: AttendanceState = {
@@ -12,6 +18,7 @@ const base: AttendanceState = {
   next_action: "CLOCK_IN",
   radius_m: 300,
   accuracy_threshold_m: 50,
+  clock_out: { status: "OPEN", opens_at: null, override: null, rule: null },
 };
 const clockedIn: AttendanceState = {
   ...base,
@@ -327,5 +334,57 @@ describe("clock input schema (the only thing the browser may send)", () => {
     { type: "CLOCK_IN" },
   ])("rejects client-asserted fields %o", (extra) => {
     expect(clockInputSchema.safeParse({ ...valid, ...extra }).success).toBe(false);
+  });
+});
+
+describe("Clock Out gate (member rule + Admin override)", () => {
+  // Clocked in at 09:04 Manila; a 9-hour rule opens Clock Out at 18:04.
+  const early: AttendanceState = {
+    ...clockedIn,
+    clock_out: {
+      status: "NOT_YET",
+      opens_at: "2026-09-28T10:04:00Z",
+      override: null,
+      rule: { mode: "HOURS", required_minutes: 540 },
+    },
+  };
+  const locked: AttendanceState = {
+    ...clockedIn,
+    clock_out: { status: "LOCKED", opens_at: null, override: "LOCKED", rule: null },
+  };
+
+  it("won't start a Clock Out while the gate is closed, but still allows it once open", () => {
+    expect(canStart(initialScreenState(early), "CLOCK_OUT")).toBe(false);
+    expect(canStart(initialScreenState(locked), "CLOCK_OUT")).toBe(false);
+    expect(canStart(initialScreenState(clockedIn), "CLOCK_OUT")).toBe(true);
+    expect(run(initialScreenState(early), { type: "START", action: "CLOCK_OUT" }).phase.name).toBe("idle");
+  });
+
+  it("a server refusal (stale screen) shows the refreshed gate instead of an error", () => {
+    const s = run(
+      initialScreenState(clockedIn),
+      { type: "START", action: "CLOCK_OUT" },
+      { type: "LOCATED", accuracyM: 10 },
+      { type: "RESULT", result: { ok: false, code: "CLOCK_OUT_LOCKED", state: locked } },
+    );
+    expect(s.phase.name).toBe("idle");
+    expect(s.attendance.clock_out.status).toBe("LOCKED");
+  });
+
+  it("explains when Clock Out opens, and why", () => {
+    expect(clockOutGateMessage(early)).toMatchObject({
+      title: "You can clock out at 18:04",
+      detail: "That's 9h after you clocked in.",
+    });
+    expect(gatedClockOutLabel(early)).toBe("Clock Out at 18:04");
+    const fixed: AttendanceState = {
+      ...early,
+      clock_out: { ...early.clock_out, rule: { mode: "TIME", clock_out_time: "18:00" } },
+    };
+    expect(clockOutGateMessage(fixed)?.detail).toBe("Your Admin set this Clock Out time.");
+    expect(clockOutGateMessage(locked)).toMatchObject({ title: "Clock Out is locked for today" });
+    expect(gatedClockOutLabel(locked)).toBe("Clock Out locked");
+    expect(clockOutGateMessage(clockedIn)).toBeNull();
+    expect(clockOutGateMessage({ ...early, next_action: "DAY_COMPLETE" })).toBeNull();
   });
 });

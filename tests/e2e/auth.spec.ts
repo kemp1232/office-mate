@@ -41,6 +41,10 @@ test.describe("Team Member sign-in (Google Workspace SSO)", () => {
     }
     await page.goto("/login?error=account_not_linked");
     await expect(page.getByText(/can't use Google sign-in/)).toBeVisible();
+    await page.goto("/login?error=ACCOUNT_DEACTIVATED");
+    await expect(page.getByText(/access has been turned off/)).toBeVisible();
+    await page.goto("/login?error=ADMIN_USES_PASSWORD");
+    await expect(page.getByText(/Use Admin sign in/)).toBeVisible();
   });
 
   test("members can't use passwords, and self sign-up / email flows don't exist", async ({ request, db }) => {

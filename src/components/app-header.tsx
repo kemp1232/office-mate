@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ClipboardList, QrCode, Settings } from "lucide-react";
+import { ClipboardList, QrCode, Settings, Users } from "lucide-react";
 import { iconButtonClass } from "@/components/ui/button";
 import type { Viewer } from "@/features/auth/dal";
 import { SignOutButton } from "@/features/auth/sign-out-button";
@@ -11,7 +11,7 @@ export function AppHeader({
   current,
 }: {
   viewer: Viewer;
-  current?: "attendance" | "log" | "settings" | "qr";
+  current?: "attendance" | "log" | "team" | "settings" | "qr";
 }) {
   return (
     <header
@@ -40,6 +40,15 @@ export function AppHeader({
                 aria-current={current === "log" ? "page" : undefined}
               >
                 <ClipboardList aria-hidden className="size-5" />
+              </Link>
+              <Link
+                href="/admin/team"
+                className={iconButtonClass}
+                aria-label="Team"
+                title="Team"
+                aria-current={current === "team" ? "page" : undefined}
+              >
+                <Users aria-hidden className="size-5" />
               </Link>
               <Link
                 href="/admin/settings"

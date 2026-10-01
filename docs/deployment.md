@@ -12,6 +12,10 @@ relevant dashboard access. Tick them off in order.
    supabase link --project-ref <project-ref>
    supabase db push            # applies supabase/migrations only (seed.sql is local-only)
    ```
+   Upgrading an existing project: `supabase db push` applies only the new migrations. The team
+   migration (`20261001000005_team_members.sql`) splits every existing user's name into first/last
+   (last word = last name), adds the prefilled team list (existing emails only get their names
+   updated), and adds Clock Out rules, today's overrides and deactivation. It changes no attendance rows.
 3. Give the runtime role a password (SQL editor, run as `postgres`) — generate it in a password manager:
    ```sql
    alter role attendance_app with login password '<32+ random characters>';

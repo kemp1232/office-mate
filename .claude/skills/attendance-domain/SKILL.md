@@ -22,8 +22,21 @@ description: Authoritative Clock In / Clock Out business rules — state machine
 
 ## Who clocks
 
-Team Members only. The Admin account is refused by `app.team_member_email` (used by `record_attendance`
-and `get_attendance_state`) and by `clockAction`; the Admin reviews attendance at `/admin/attendance`.
+Active Team Members only. The Admin account and deactivated members are refused by
+`app.team_member_email` (used by `record_attendance` and `get_attendance_state`) and by `clockAction`;
+the Admin reviews attendance at `/admin/attendance`.
+
+## Clock Out gate (rules + today's override)
+
+- `app.clock_out_rules`: at most one rule per member, same every office day — `TIME` (earliest Clock Out,
+  org timezone, whole minutes) or `HOURS` (`required_minutes` 30–960 after that day's Clock In).
+- `app.clock_out_overrides`: keyed by `(user_id, attendance_day)` — `LOCKED` or `UNLOCKED` for today only.
+- `app.clock_out_gate(user, day, tz, clock_in, now)` → `{status OPEN|NOT_YET|LOCKED, opens_at, override, rule}`.
+  Order: LOCKED override → UNLOCKED override → no rule (OPEN) → before `opens_at` (NOT_YET) → OPEN.
+- `record_attendance` checks it for Clock Out under the per-user/day lock with the trusted timestamp,
+  after the location checks: `CLOCK_OUT_LOCKED` / `CLOCK_OUT_TOO_EARLY` (+ `opens_at`, + state); nothing written.
+- Every state payload has `clock_out` (via `app.member_state`). The phone only mirrors it: disabled
+  "Clock Out at HH:MM" / "Clock Out locked", no location request, and a re-read when `opens_at` passes.
 
 ## Attendance day
 
@@ -42,7 +55,8 @@ and `get_attendance_state`) and by `clockAction`; the Admin reviews attendance a
 
 - Rows are inserted only by `app.record_attendance`. Triggers block UPDATE/DELETE/TRUNCATE for every role;
   `attendance_app` has no table privileges; users with history can't be deleted (`on delete restrict`).
-- There is NO correction, override, deletion, or retention workflow. Don't build one.
+- There is NO correction, deletion, or retention workflow for events. Don't build one. (The Clock Out
+  override above only controls whether a Clock Out may be recorded; it never changes rows.)
 
 ## Each event stores
 
@@ -52,5 +66,6 @@ Failed attempts are not stored.
 
 ## Tests to update when changing rules
 
-`supabase/tests/database/03_record_attendance.sql`, `tests/integration/attendance-db.test.ts`,
-`tests/unit/attendance-model.test.ts`, `tests/e2e/journey.spec.ts`.
+`supabase/tests/database/03_record_attendance.sql`, `supabase/tests/database/05_team_and_clock_out.sql`,
+`tests/integration/attendance-db.test.ts`, `tests/unit/attendance-model.test.ts`, `tests/e2e/journey.spec.ts`,
+`tests/e2e/team.spec.ts`.

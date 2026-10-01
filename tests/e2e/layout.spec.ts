@@ -108,6 +108,15 @@ test("admin pages", async ({ page, db }, testInfo) => {
   await checkLayout(page, testInfo, "admin-qr");
   await page.goto("/admin/attendance");
   await checkLayout(page, testInfo, "admin-attendance-log");
+  await page.goto("/admin/team");
+  await checkLayout(page, testInfo, "admin-team");
+  await page.goto("/admin/team/new");
+  await checkLayout(page, testInfo, "admin-team-new");
+  const { rows } = await db.query<{ id: string }>(
+    "select id from app.users where email = 'jakezozobrado@firstmate.tech'",
+  );
+  await page.goto(`/admin/team/${rows[0].id}`);
+  await checkLayout(page, testInfo, "admin-team-edit");
 });
 
 test("reduced motion disables animations", async ({ page }) => {

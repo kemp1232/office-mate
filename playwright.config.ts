@@ -55,7 +55,7 @@ export default defineConfig({
     {
       name: "desktop",
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
-      testMatch: /(journey|auth|admin|layout)\.spec\.ts/,
+      testMatch: /(journey|auth|admin|team|layout)\.spec\.ts/,
     },
   ],
   webServer: {

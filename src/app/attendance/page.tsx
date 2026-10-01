@@ -30,7 +30,7 @@ export default async function AttendancePage({
           <AttendanceScreen
             initialState={state}
             source={isQr ? "QR" : "DIRECT"}
-            firstName={viewer.name.split(/\s+/)[0] || viewer.name}
+            firstName={viewer.firstName}
             serverNow={new Date().toISOString()}
           />
         </main>

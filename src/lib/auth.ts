@@ -15,7 +15,10 @@ import { env } from "./env";
  *   A valid account becomes a Team Member on first sign-in. No member passwords exist.
  * - Admin: email + password only, for admin@firstmate.tech (created by `npm run admin:create`).
  *   Password sign-in is refused for every other address; public email sign-up is disabled.
- * - Implicit account linking is off, so Google can never attach to the Admin account.
+ * - Members the Admin added (or the prefilled team list) have no account until their first Google
+ *   sign-in, which links Google to that row: same email, Google-verified, hd=firstmate.tech, and
+ *   only onto a verified row (Admin-added rows are). `validateUserInfo` refuses linking the Admin
+ *   account and refuses deactivated members; a session hook blocks deactivated members again.
  * - Role is never stored or accepted from the client; it is derived from the verified email
  *   (see features/auth/roles.ts and app.is_admin()).
  */
@@ -25,6 +28,17 @@ const domainError = () =>
     code: "EMAIL_DOMAIN_NOT_ALLOWED",
     message: `Use your @${ORG_DOMAIN} Google Workspace account.`,
   });
+
+const DEACTIVATED = { code: "ACCOUNT_DEACTIVATED", message: "This account has been deactivated." } as const;
+
+async function isDeactivated(userId: unknown): Promise<boolean> {
+  if (typeof userId !== "string") return false;
+  const { rows } = await db().query<{ deactivated: boolean }>(
+    "select deactivated_at is not null as deactivated from app.users where id = $1::uuid",
+    [userId],
+  );
+  return rows[0]?.deactivated ?? false;
+}
 
 function createAuth() {
   const e = env();
@@ -41,6 +55,28 @@ function createAuth() {
     user: {
       modelName: "users",
       fields: { emailVerified: "email_verified", createdAt: "created_at", updatedAt: "updated_at" },
+      additionalFields: {
+        // Set from the Google profile on first sign in (mapProfileToUser); the Admin edits them in
+        // SQL (app.admin_save_member). `name` is derived from them by a DB trigger.
+        firstName: { type: "string", fieldName: "first_name", required: false, input: true },
+        lastName: { type: "string", fieldName: "last_name", required: false, input: true },
+        deactivatedAt: { type: "date", fieldName: "deactivated_at", required: false, input: false },
+      },
+      // Runs before Better Auth links Google to an existing row and on every returning Google
+      // sign in (creation is gated by databaseHooks.user.create below).
+      validateUserInfo: async ({ user, source }) => {
+        if (source.action === "create-user") return;
+        const email = typeof user.email === "string" ? user.email : "";
+        if (isAdminEmail(email))
+          return { error: "ADMIN_USES_PASSWORD", errorDescription: "Use Admin sign in." };
+        if (!isOrgEmail(email))
+          return {
+            error: "EMAIL_DOMAIN_NOT_ALLOWED",
+            errorDescription: "Use your Google Workspace account.",
+          };
+        if (await isDeactivated(user.id))
+          return { error: DEACTIVATED.code, errorDescription: DEACTIVATED.message };
+      },
     },
     session: {
       modelName: "sessions",
@@ -63,12 +99,19 @@ function createAuth() {
               clientSecret: e.GOOGLE_CLIENT_SECRET,
               hd: ORG_DOMAIN, // account-picker hint AND verified id-token `hd` claim check
               prompt: "select_account",
+              // New members get their Google first/last name. Existing rows keep the Admin's
+              // names: no overrideUserInfoOnSignIn, no updateUserInfoOnLink.
+              mapProfileToUser: (profile) => ({
+                firstName: profile.given_name ?? "",
+                lastName: profile.family_name ?? "",
+              }),
             },
           }
         : {},
     account: {
-      // Each person has exactly one sign-in method; never merge Google into the password account.
-      accountLinking: { enabled: false },
+      // Lets a member's first Google sign in attach to the row the Admin created for them. Same
+      // email only; never onto an unverified row (Better Auth default) or the Admin (validateUserInfo).
+      accountLinking: { enabled: true, allowDifferentEmails: false, updateUserInfoOnLink: false },
       encryptOAuthTokens: true,
       modelName: "accounts",
       fields: {
@@ -143,6 +186,14 @@ function createAuth() {
           // account is only ever created by scripts/create-admin.mts, never through sign-in.
           before: async (user) => {
             if (!isOrgEmail(user.email) || isAdminEmail(user.email)) throw domainError();
+          },
+        },
+      },
+      session: {
+        create: {
+          // Deactivated members can't get a session by any path (deactivation also deletes theirs).
+          before: async (session) => {
+            if (await isDeactivated(session.userId)) throw new APIError("FORBIDDEN", DEACTIVATED);
           },
         },
       },

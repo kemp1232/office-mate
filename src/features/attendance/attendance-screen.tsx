@@ -1,7 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { CircleCheckBig, ClockArrowDown, ClockArrowUp, LogIn, MapPin, RotateCw } from "lucide-react";
+import {
+  CircleCheckBig,
+  ClockArrowDown,
+  ClockArrowUp,
+  Hourglass,
+  Lock,
+  LogIn,
+  MapPin,
+  RotateCw,
+} from "lucide-react";
 import { Button, LinkButton } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/card";
 import { StatusPanel } from "@/components/ui/status-panel";
@@ -11,7 +20,9 @@ import { formatAttendanceDay, formatClockTime, formatElapsed, orgDate } from "./
 import { requestBestPosition } from "./geolocation";
 import {
   actionLabel,
+  clockOutGateMessage,
   errorMessage,
+  gatedClockOutLabel,
   detectPlatform,
   locatingMessage,
   successMessage,
@@ -19,7 +30,7 @@ import {
   verifyingMessage,
   type StatusMessage,
 } from "./messages";
-import { canStart, initialScreenState, isBusy, screenReducer, type ScreenState } from "./model";
+import { canStart, clockOutOpen, initialScreenState, isBusy, screenReducer, type ScreenState } from "./model";
 import type { AttendanceAction, AttendanceSource, AttendanceState } from "./types";
 
 type Props = {
@@ -71,6 +82,32 @@ export function AttendanceScreen({ initialState, source, firstName, serverNow }:
       window.removeEventListener("pageshow", onResume);
     };
   }, [resyncIfIdle]);
+
+  // While Clock Out is waiting on the member's rule, re-read the state when it should open (the
+  // server decides; the phone's clock may be off, so correct by the server time we rendered with).
+  const gate = attendance.next_action === "CLOCK_OUT" ? attendance.clock_out : null;
+  const opensAt = gate?.status === "NOT_YET" ? gate.opens_at : null;
+  const skewMs = useRef(0);
+  useEffect(() => {
+    skewMs.current = new Date(serverNow).getTime() - Date.now(); // measured once, on mount
+  }, [serverNow]);
+  useEffect(() => {
+    if (!opensAt) return;
+    let timer: number;
+    const schedule = (minDelayMs: number) => {
+      const dueMs = new Date(opensAt).getTime() - (Date.now() + skewMs.current) + 1_000;
+      timer = window.setTimeout(
+        async () => {
+          const fresh = running.current ? null : await resync();
+          // Still early by the server's clock, or the re-read failed (offline, or a tap was running).
+          if (!fresh || fresh.clock_out.status === "NOT_YET") schedule(15_000);
+        },
+        Math.min(Math.max(dueMs, minDelayMs), 2 ** 31 - 1),
+      );
+    };
+    schedule(0);
+    return () => window.clearTimeout(timer);
+  }, [opensAt, resync]);
 
   // When the action button goes away (day complete), move focus to the summary.
   useEffect(() => {
@@ -137,6 +174,8 @@ export function AttendanceScreen({ initialState, source, firstName, serverNow }:
   const showRetry = phase.name === "error" && Boolean(message?.retry);
   // The action the big button performs: the retried one, or the server-derived next action.
   const buttonAction = phase.name === "error" && showRetry ? phase.action : nextAction;
+  // Clock Out waiting on the member's rule or locked by the Admin: shown, explained, not tappable.
+  const gated = buttonAction === "CLOCK_OUT" && !showRetry && !busy && !clockOutOpen(attendance);
 
   // Portrait: greeting → today card (centred in the free space) → status + action anchored in
   // the thumb zone, so the button never moves when a message appears. Short landscape: 2 columns.
@@ -182,16 +221,24 @@ export function AttendanceScreen({ initialState, source, firstName, serverNow }:
               variant={buttonAction === "CLOCK_OUT" ? "clock-out" : "primary"}
               onClick={showRetry ? retry : () => attempt(buttonAction)}
               // aria-disabled (not disabled) keeps keyboard/screen-reader focus on the button.
-              aria-disabled={busy || undefined}
+              aria-disabled={busy || gated || undefined}
               icon={
-                showRetry ? <RotateCw aria-hidden className="size-6" /> : <ActionIcon action={buttonAction} />
+                showRetry ? (
+                  <RotateCw aria-hidden className="size-6" />
+                ) : gated ? (
+                  <GateIcon locked={attendance.clock_out.status === "LOCKED"} />
+                ) : (
+                  <ActionIcon action={buttonAction} />
+                )
               }
             >
               {showRetry
                 ? `Try ${actionLabel(buttonAction)} again`
                 : busy
                   ? "Checking location…"
-                  : actionLabel(buttonAction)}
+                  : gated
+                    ? gatedClockOutLabel(attendance)
+                    : actionLabel(buttonAction)}
             </Button>
             <p className="flex items-center justify-center gap-1.5 text-center text-sm text-ink-muted">
               <MapPin aria-hidden className="size-4 shrink-0" />
@@ -216,10 +263,15 @@ function ActionIcon({ action }: { action: AttendanceAction }) {
   return <Icon aria-hidden className="size-6" />;
 }
 
+function GateIcon({ locked }: { locked: boolean }) {
+  const Icon = locked ? Lock : Hourglass;
+  return <Icon aria-hidden className="size-6" />;
+}
+
 function phaseMessage({ phase, attendance }: ScreenState): StatusMessage | null {
   switch (phase.name) {
     case "idle":
-      return null;
+      return clockOutGateMessage(attendance);
     case "locating":
       return locatingMessage(phase.accuracyM);
     case "verifying":

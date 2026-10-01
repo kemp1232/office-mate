@@ -71,6 +71,8 @@ export async function recordAttendance(userId: string, input: ClockInput): Promi
     case "OUTSIDE_GEOFENCE":
       return { ok: false, code: r.code, distanceM: r.distance_m ?? 0, radiusM: r.radius_m ?? 0 };
     case "STATE_CHANGED":
+    case "CLOCK_OUT_TOO_EARLY":
+    case "CLOCK_OUT_LOCKED":
       return r.state ? { ok: false, code: r.code, state: r.state } : { ok: false, code: "SERVER_ERROR" };
     case "NOT_CONFIGURED":
     case "INVALID_INPUT":

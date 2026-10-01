@@ -37,10 +37,14 @@ npm test | npm run test:db | npm run test:integration | npm run test:e2e
 ## Guardrails (never violate)
 
 - Auth (Better Auth): Team Members = Google Workspace SSO only (`hd=firstmate.tech`, verified server-side;
-  first sign-in creates the member). Admin = `admin@firstmate.tech` email+password only (created by
-  `npm run admin:create`). No self sign-up, no email flows, no account linking. Admin allow-list:
-  SQL `app.admin_emails()` = `features/auth/roles.ts` `ADMIN_EMAILS`. The Admin does NOT clock in/out
-  (UI redirects, action + SQL refuse); their home is `/admin/attendance` (read-only log).
+  first sign-in links to the row the Admin added, or creates the member from their Google names).
+  Admin = `admin@firstmate.tech` email+password only (created by `npm run admin:create`). No self
+  sign-up, no email flows. Linking is same-email only, onto verified rows, never the Admin
+  (`validateUserInfo`). Deactivated members can't sign in (validateUserInfo + session hook) or clock
+  (SQL). Admin allow-list: SQL `app.admin_emails()` = `features/auth/roles.ts` `ADMIN_EMAILS`. The
+  Admin does NOT clock in/out (UI redirects, action + SQL refuse); their home is `/admin/attendance`.
+- Clock Out rules (`/admin/team`): per member a fixed time or required hours, plus a today-only Admin
+  lock/unlock. Enforced only in `app.record_attendance` (`clock_out_gate`); the browser just mirrors it.
 - Never trust the browser for role, event type, timestamps, distance, or pass/fail.
 - Location: one attempt per explicit tap (`requestBestPosition`: ≤3 sequential `getCurrentPosition`
   readings within ~20 s, stopping once accurate). No `watchPosition`, polling, or background use.
@@ -54,7 +58,8 @@ npm test | npm run test:db | npm run test:integration | npm run test:e2e
 ## Out of scope (v1)
 
 dashboards/analytics/CSV (only the read-only Admin attendance log exists), multiple offices, Manager/custom roles,
-role-management UI, attendance editing/deletion, spoof detection, payroll/shifts/HR features.
+role-management UI, attendance editing/deletion, spoof detection, payroll/HR features, per-weekday
+schedules or shift rosters (the only rule is one Clock Out rule per member).
 
 ## Project skills
 

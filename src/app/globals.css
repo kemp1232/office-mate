@@ -94,6 +94,10 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Reserve the scrollbar's space on every page, so short and long pages (e.g. the log vs the
+       team list) have the same width and nothing shifts when navigating. No effect on phones. */
+    scrollbar-gutter: stable;
+    background: var(--color-canvas);
   }
 
   body {

@@ -32,6 +32,17 @@ Validation lives in `features/settings/schema.ts` (field errors shown next to in
 - The Admin never clocks in/out: `/attendance` redirects here; `clockAction` + `app.record_attendance`
   (via `team_member_email`) refuse the Admin.
 
+## Team (`/admin/team`, `/admin/team/new`, `/admin/team/[id]`)
+
+- Everyone except the Admin (`app.admin_team`), searchable, deactivated hidden behind "Show deactivated".
+  Each person: name, email, "Not signed in yet", Clock Out rule, today's times + gate badge, and a
+  **Clock Out today** control (Follow rule / Unlock / Lock — today only, `app.admin_set_clock_out_override`).
+- Add / edit (`app.admin_save_member`): first + last name, `@firstmate.tech` email (fixed after their first
+  sign in), rule = none | fixed time | required hours. Validated in `features/team/schema.ts` and SQL.
+- Deactivate / reactivate on the edit page (confirm step; `app.admin_set_member_active`).
+- Code: `features/team/{schema,model,service,actions}.ts` + `team-list`, `override-control`,
+  `member-form`, `member-access` components.
+
 ## QR (`/admin/qr`)
 
 One static QR (qrcode.react SVG) for `${BETTER_AUTH_URL}/attendance?source=qr`, plus a print layout
@@ -39,5 +50,6 @@ One static QR (qrcode.react SVG) for `${BETTER_AUTH_URL}/attendance?source=qr`, 
 
 ## Not allowed
 
-Charts/analytics/exports, editing or deleting attendance, user or role management,
-multiple offices, reading data back from the Sheet. Suggest these as v2 in docs instead.
+Charts/analytics/exports, editing or deleting attendance, role management (Admin stays the hard-coded
+allow-list), deleting members, per-weekday schedules, multiple offices, reading data back from the
+Sheet. Suggest these as v2 in docs instead.

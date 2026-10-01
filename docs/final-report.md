@@ -200,7 +200,8 @@ In-app reports, a corrections workflow, multiple offices, shift handling across 
 All in `docs/implementation-plan.md`. Highlights:
 
 - Better Auth instead of Supabase Auth.
-- Google Workspace SSO (`hd`) for members, email + password for the single Admin, no account linking.
+- Google Workspace SSO (`hd`) for members, email + password for the single Admin. Google links only to
+  members the Admin added (same email), never to the Admin account (Revision 5).
 - Timezone as an env var.
 - The accuracy threshold can go up to 1000 m, so 300 m is possible for indoor use.
 - MapLibre v6 with the worker served from `/public`.

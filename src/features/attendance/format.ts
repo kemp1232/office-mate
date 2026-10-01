@@ -42,6 +42,14 @@ export function formatElapsed(fromIso: string, to: Date | string): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
+/** A whole-minute duration: "9h" / "8h 30m" / "45m". */
+export function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h === 0) return `${m}m`;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
 /** The calendar date (YYYY-MM-DD) of `at` in the organisation timezone. */
 export function orgDate(at: Date, timeZone: string): string {
   return formatter("en-CA", {

@@ -11,14 +11,20 @@ import { loginPathFor } from "./safe-next";
  * The session is verified by Better Auth against the database on every request.
  * Role is derived from the verified email here — never read from the request.
  */
-export type Viewer = { id: string; email: string; name: string; role: Role };
+export type Viewer = { id: string; email: string; name: string; firstName: string; role: Role };
 
 export const getViewer = cache(async (): Promise<Viewer | null> => {
   const session = await auth().api.getSession({ headers: await headers() });
   if (!session) return null;
   const { user } = session;
-  if (!user.emailVerified || !isOrgEmail(user.email)) return null;
-  return { id: user.id, email: user.email, name: user.name, role: roleForEmail(user.email) };
+  if (!user.emailVerified || !isOrgEmail(user.email) || user.deactivatedAt) return null;
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    firstName: user.firstName?.trim() || user.name.split(/\s+/)[0] || user.name,
+    role: roleForEmail(user.email),
+  };
 });
 
 /** For pages: redirects to login (preserving the return path) when signed out. */

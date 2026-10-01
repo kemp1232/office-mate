@@ -31,7 +31,9 @@ E2E coverage: QR → login → Clock In → Checking → verified → Clocked in
 denied / unavailable / timeout / poor accuracy / outside / offline / mid-request drop / unconfigured /
 double tap; Google redirect (hd, callback URI, PKCE, QR destination) + injected session; members refused
 on the password endpoint; disabled sign-up/email endpoints; Google error copy; Admin password form; open redirect;
-Team Member blocked from /admin; Admin map pin + save + validation; QR + print; manifest + SW guardrails;
+Team Member blocked from /admin; Admin map pin + save + validation; QR + print; Team page (search, add/edit
+with validation, email fixed after sign in, lock/unlock, deactivate signs out + reactivate); member Clock Out
+gate (waits for required hours, unlocked by Admin, locked explains itself); manifest + SW guardrails;
 layout (no overflow, 44px targets, axe, CTA in first viewport, reduced motion).
 
 ## 3. Visual review

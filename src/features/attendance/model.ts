@@ -53,9 +53,19 @@ export function isBusy(phase: Phase): boolean {
   return phase.name === "locating" || phase.name === "verifying";
 }
 
+/** Whether the server says Clock Out is allowed now (rule + today's Admin override). */
+export function clockOutOpen(attendance: AttendanceState): boolean {
+  return attendance.clock_out.status === "OPEN";
+}
+
 /** Whether a tap on `action` may start an attempt (same rule the reducer applies to START). */
 export function canStart(state: ScreenState, action: AttendanceAction): boolean {
-  return !isBusy(state.phase) && state.attendance.configured && state.attendance.next_action === action;
+  return (
+    !isBusy(state.phase) &&
+    state.attendance.configured &&
+    state.attendance.next_action === action &&
+    (action !== "CLOCK_OUT" || clockOutOpen(state.attendance))
+  );
 }
 
 export function screenReducer(state: ScreenState, event: ScreenEvent): ScreenState {
@@ -121,6 +131,10 @@ function applyResult(state: ScreenState, action: AttendanceAction, result: Clock
     case "STATE_CHANGED":
       // Our view was stale (e.g. a retried request already succeeded): show the real state and why.
       return { attendance: result.state, phase: { name: "synced", action } };
+    case "CLOCK_OUT_TOO_EARLY":
+    case "CLOCK_OUT_LOCKED":
+      // The rule or an Admin lock applies (our copy was stale): the gate message explains it.
+      return { attendance: result.state, phase: { name: "idle" } };
     case "NOT_CONFIGURED":
       return {
         attendance: { ...state.attendance, configured: false },

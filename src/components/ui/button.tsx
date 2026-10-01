@@ -1,7 +1,7 @@
 import type { ComponentPropsWithRef, ReactNode } from "react";
 import Link from "next/link";
 
-type Variant = "primary" | "clock-out" | "secondary" | "link";
+type Variant = "primary" | "clock-out" | "danger" | "secondary" | "link";
 type Size = "sm" | "md" | "cta";
 
 const base =
@@ -13,6 +13,7 @@ const base =
 const variants: Record<Variant, string> = {
   primary: "bg-accent text-ink-inverse hover:bg-accent-strong",
   "clock-out": "bg-clock-out text-ink-inverse hover:bg-clock-out-strong",
+  danger: "bg-danger text-ink-inverse hover:bg-danger/90",
   secondary: "border border-line bg-surface text-ink-strong hover:border-accent/40 hover:bg-accent-tint",
   link: "px-2! text-accent hover:underline",
 };

@@ -1,6 +1,21 @@
 # First Mate Geofenced Attendance — Implementation Plan (v1)
 
-Status: **approved 2026-09-28 with Revisions 1–2 below.** Research date: 2026-09-28.
+Status: **approved 2026-09-28 with Revisions 1–5 below.** Research date: 2026-09-28.
+
+## Revision 5 — 2026-10-01: Team management + Clock Out rules (was out of scope)
+
+| Topic | Decision |
+|---|---|
+| Team page | `/admin/team`: everyone except the Admin, searchable; name, email, rule, today's times and whether Clock Out is open; cards on phones, a table from `lg`. Add (`/admin/team/new`) and edit (`/admin/team/[id]`) members. |
+| Names | `app.users.first_name` / `last_name`; `name` = "First Last", kept in sync by a trigger (rows written with only `name` are split, last word = last name). |
+| Prefill | Migration `…000005` upserts the 24-person team list; existing emails only get their names updated. |
+| Sign in | A pre-added member's first Google sign in links Google to their row (same email, Google-verified, `hd`); Admin-added rows are stored verified so Better Auth's default linking gate applies. People not on the list are added from their Google first/last name, as before. The Admin's names are never overwritten by Google. The Admin account can never be linked. |
+| Email | Editable only before the member's first sign in (`EMAIL_LOCKED` after). |
+| Clock Out rule | One per member, same every office day: none, a fixed time (org timezone; clocking in after it opens Clock Out at once), or required hours (30 min to 16 h from that day's Clock In, breaks included). |
+| Override | Today only (keyed by attendance day): Locked (no Clock Out) or Unlocked (Clock Out any time); back to Follow rule clears it. |
+| Enforcement | `record_attendance` refuses `CLOCK_OUT_LOCKED` / `CLOCK_OUT_TOO_EARLY` under the per-user/day lock, after the location checks; the state carries the gate so the phone disables Clock Out, explains why, and re-reads state when it opens. |
+| Deactivate | Blocks sign in (validateUserInfo + session hook), deletes their sessions, and SQL refuses their clocks; history kept; reactivation allowed; never the Admin. Deactivated members are hidden unless "Show deactivated" is on. |
+| Known consequence | A member who leaves while locked (or before their time) has no Clock Out that day; rows still can't be corrected. |
 
 ## Revision 4 — 2026-09-29: Admin attendance log (was out of scope)
 

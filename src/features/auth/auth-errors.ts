@@ -29,6 +29,10 @@ export function googleErrorMessage(code: string | undefined): string | undefined
     case "unable_to_get_user_info": // Google account isn't in the firstmate.tech Workspace (hd check)
     case "unable_to_create_user":
       return "Use your @firstmate.tech Google Workspace account.";
+    case "ACCOUNT_DEACTIVATED":
+      return "Your Office Mate access has been turned off. Ask the Admin if this is a mistake.";
+    case "ADMIN_USES_PASSWORD":
+      return "The Admin account signs in with email and password. Use Admin sign in.";
     case "account_not_linked":
       // An existing account without a Google login (the Admin, or a user left half-deleted).
       return "This email's account can't use Google sign-in. The Admin uses Admin sign in; anyone else, ask the Admin.";

@@ -13,11 +13,20 @@ description: Authentication, authorisation and secret-handling rules (Better Aut
   (callback error `unable_to_get_user_info`). `databaseHooks.user.create.before` re-checks the email
   domain (`EMAIL_DOMAIN_NOT_ALLOWED`) and the DB constraint `users_email_org_domain` checks it again.
   A valid account becomes a Team Member on first sign-in; Google's `email_verified` sets `email_verified`.
+- **Pre-added members** (Admin Team page, prefilled list) are `app.users` rows with `email_verified = true`
+  and no account. Their first Google sign-in links Google to that row: `accountLinking.enabled`, same
+  email only (`allowDifferentEmails: false`), Better Auth's verified-local-row gate, no profile overwrite
+  (`updateUserInfoOnLink: false`, no `overrideUserInfoOnSignIn`). `mapProfileToUser` gives new members
+  `firstName`/`lastName` (`additionalFields` → `first_name`/`last_name`; `name` is derived by a DB trigger).
+- `user.validateUserInfo` (link-account + sign-in): refuses the Admin email (`ADMIN_USES_PASSWORD`),
+  non-org emails, and deactivated users (`ACCOUNT_DEACTIVATED`). `databaseHooks.session.create.before`
+  refuses deactivated users on every path. Deactivation (`app.admin_set_member_active`) also deletes
+  their sessions; `getViewer` ignores a user with `deactivatedAt`.
 - **Admin → email + password only**, for `admin@firstmate.tech`, created/reset by `npm run admin:create`
   (hidden prompt, scrypt hash only — never commit, log, or env-var it). A `hooks.before` on
   `/sign-in/email` refuses every other address (`USE_GOOGLE_SIGN_IN`).
-- `emailAndPassword.disableSignUp`; `account.accountLinking.enabled = false` (Google can never attach
-  to the Admin account → `account_not_linked`); `encryptOAuthTokens`.
+- `emailAndPassword.disableSignUp`; `encryptOAuthTokens`. Google can never attach to the Admin account
+  (validateUserInfo), and `/link-social` stays disabled.
 - Disabled endpoints: sign-up, password reset/change/set, email verification, update-user, change-email,
   delete-user, link/unlink. There is no SMTP.
 - Sign-in goes through `/api/auth/*` via `authClient` so origin checks and **DB-backed per-IP rate
@@ -29,7 +38,8 @@ description: Authentication, authorisation and secret-handling rules (Better Aut
 
 - Two roles only: Admin (email ∈ `ADMIN_EMAILS` / `app.is_admin`) and Team Member (any other verified org user).
 - Pages: `requireViewer()` / `requireAdminPage()`. Server Actions: `getViewer()` then check role — every time.
-- Admin is checked AGAIN inside SQL (`get_admin_settings`, `update_admin_settings`).
+- Admin is checked AGAIN inside SQL (`get_admin_settings`, `update_admin_settings`, `admin_team`,
+  `admin_save_member`, `admin_set_clock_out_override`, `admin_set_member_active`).
 - Never accept role, isAdmin, event type, timestamps, distance or geofence result from the client.
 - `proxy.ts` is only an optimistic cookie redirect — never rely on it for security.
 

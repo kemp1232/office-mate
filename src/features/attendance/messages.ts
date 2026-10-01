@@ -1,4 +1,4 @@
-import { formatClockTime } from "./format";
+import { formatClockTime, formatDuration } from "./format";
 import type { AttemptError } from "./model";
 import type { AttendanceAction, AttendanceState } from "./types";
 
@@ -24,6 +24,39 @@ export function actionLabel(action: AttendanceAction): string {
 
 function formatMeters(m: number): string {
   return `${Math.round(m).toLocaleString("en-US")}m`;
+}
+
+/**
+ * Why Clock Out isn't available yet (shown while clocked in and the gate is closed), or null.
+ * Times are in the organisation timezone, like every other time on the screen.
+ */
+export function clockOutGateMessage(state: AttendanceState): StatusMessage | null {
+  const { clock_out: gate } = state;
+  if (state.next_action !== "CLOCK_OUT" || gate.status === "OPEN") return null;
+  if (gate.status === "LOCKED")
+    return {
+      tone: "warning",
+      title: "Clock Out is locked for today",
+      detail: "Your Admin locked it. Ask them to unlock it if you need to leave.",
+      retry: false,
+    };
+  const at = gate.opens_at ? formatClockTime(gate.opens_at, state.timezone) : null;
+  return {
+    tone: "neutral",
+    title: at ? `You can clock out at ${at}` : "You can't clock out yet",
+    detail:
+      gate.rule?.mode === "HOURS"
+        ? `That's ${formatDuration(gate.rule.required_minutes)} after you clocked in.`
+        : "Your Admin set this Clock Out time.",
+    retry: false,
+  };
+}
+
+/** The Clock Out button's label while the gate is closed. */
+export function gatedClockOutLabel(state: AttendanceState): string {
+  const { clock_out: gate } = state;
+  if (gate.status === "LOCKED") return "Clock Out locked";
+  return gate.opens_at ? `Clock Out at ${formatClockTime(gate.opens_at, state.timezone)}` : "Clock Out";
 }
 
 export type Platform = "ios" | "android" | "other";
